@@ -1,24 +1,17 @@
 import streamlit as st
 import pandas as pd
 import random
-import hashlib
-import os
 
 # Page Configuration
 st.set_page_config(
-    page_title="COD Shield Portal", page_icon="🛡️", layout="centered"
+    page_title="COD Shield Portal", page_icon="🛡️", layout="wide"
 )
 
-st.title("🛡️ COD Shield: Secure E-Commerce Risk Intelligence")
-st.markdown(
-    "A secure cloud network for e-commerce brands to prevent Cash on "
-    "Delivery (COD) RTO and fake order losses."
-)
+# Sidebar Navigation (مینو بار)
+st.sidebar.title("🛡️ COD Shield Navigation")
+app_mode = st.sidebar.radio("Choose Interface:", ["🔍 Merchant Lookup Portal", "⚙️ Admin Dashboard (Moise)"])
 
-# Database File Path (Persistent Storage)
-DB_FILE = "cod_database.csv"
-
-# Pakistani Mock Database Generator
+# Shared Mock Database Generator
 @st.cache_data
 def generate_pakistani_mock_data(num_records=60):
     first_names = [
@@ -60,22 +53,43 @@ def generate_pakistani_mock_data(num_records=60):
 # Load database
 df_db = generate_pakistani_mock_data(60)
 
-st.markdown("---")
-st.subheader("🔍 Merchant Network Lookup")
+# ==================== INTERFACE 1: MERCHANT LOOKUP ====================
+if app_mode == "🔍 Merchant Lookup Portal":
+    st.title("🛡️ COD Shield: Merchant Risk Verification")
+    st.markdown("Check customer delivery history and RTO risk across multiple Pakistani e-commerce brands before dispatching orders.")
+    st.markdown("---")
 
-# Search bar widget
-search_query = st.text_input("Search Customer by Phone Number or Name:", placeholder="e.g. 0300 or Ali")
+    search_query = st.text_input("Enter Customer Phone Number or Name:", placeholder="e.g. 0300 or Ali")
 
-if search_query:
-    filtered_df = df_db[
-        df_db['Phone'].str.contains(search_query, na=False) | 
-        df_db['Customer_Name'].str.contains(search_query, case=False, na=False)
-    ]
-    if not filtered_df.empty:
-        st.success(f"Found {len(filtered_df)} matching record(s) in the Shared Network!")
-        st.dataframe(filtered_df, use_container_width=True)
+    if search_query:
+        filtered_df = df_db[
+            df_db['Phone'].str.contains(search_query, na=False) | 
+            df_db['Customer_Name'].str.contains(search_query, case=False, na=False)
+        ]
+        if not filtered_df.empty:
+            st.success(f"Found {len(filtered_df)} matching record(s) in the Shared Network!")
+            st.dataframe(filtered_df, use_container_width=True)
+        else:
+            st.warning("No risky history found. This customer appears clean in the network!")
     else:
-        st.warning("No records found. This customer is clean / new to the network!")
-else:
-    st.info("Sample network database preview (Showing first 10 records):")
-    st.dataframe(df_db.head(10), use_container_width=True)
+        st.info("💡 Tip: Type a phone prefix (like 0300) or a name to check risk status.")
+
+# ==================== INTERFACE 2: ADMIN DASHBOARD (MOISE) ====================
+elif app_mode == "⚙️ Admin Dashboard (Moise)":
+    st.title("👑 COD Shield: Owner & Admin Control Panel")
+    st.markdown("Welcome back, Moise! Here is the high-level overview of your network performance.")
+    st.markdown("---")
+
+    # Metrics Row
+    col1, col2, col3 = st.columns(3)
+    total_customers = len(df_db)
+    high_risk_count = len(df_db[df_db['Risk_Status'] != "Safe / Delivered"])
+    safe_count = len(df_db[df_db['Risk_Status'] == "Safe / Delivered"])
+
+    col1.metric("Total Network Records", total_customers)
+    col2.metric("High Risk / RTO Flagged", high_risk_count)
+    col3.metric("Safe / Delivered", safe_count)
+
+    st.markdown("---")
+    st.subheader("📋 Full Shared Database Management")
+    st.dataframe(df_db, use_container_width=True)
