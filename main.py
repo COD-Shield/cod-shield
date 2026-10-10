@@ -42,7 +42,7 @@ def load_mock_network_data():
 df_network = load_mock_network_data()
 
 # Tabs for Single Search vs Bulk Upload/Download
-tab1, tab2 = st.tabs(["🔍 Single Number Search", "📂 Bulk Upload & Download"])
+tab1, tab2 = st.tabs(["🔍 Single Number Search", "📂 Bulk Download"])
 
 # ================= TAB 1: SINGLE SEARCH =================
 with tab1:
