@@ -4,92 +4,98 @@ import random
 
 # Page Configuration
 st.set_page_config(
-    page_title="COD Shield Portal", page_icon="🛡️", layout="wide"
+    page_title="COD Shield - Merchant Portal", page_icon="🛡️", layout="centered"
 )
 
-# Sidebar Navigation (مینو بار)
-st.sidebar.title("🛡️ COD Shield Navigation")
-app_mode = st.sidebar.radio("Choose Interface:", ["🔍 Merchant Lookup Portal", "⚙️ Admin Dashboard (Moise)"])
+st.title("🛡️ COD Shield: E-Commerce Risk Intelligence")
+st.markdown("Check customer delivery behavior and prevent Cash on Delivery (COD) RTO losses.")
+st.markdown("---")
 
-# Shared Mock Database Generator
+# Mock Database Generator with Green, Yellow, Red Statuses
 @st.cache_data
-def generate_pakistani_mock_data(num_records=60):
-    first_names = [
-        "Muhammad", "Ali", "Ahmed", "Fatima", "Zainab", "Usman", "Ayesha", 
-        "Bilal", "Hamza", "Sana", "Omar", "Amina", "Hassan", "Hira", 
-        "Saad", "Khadija", "Talha", "Maryam", "Danyal", "Laiba", "Shahzaib"
+def load_mock_network_data():
+    first_names = ["Muhammad", "Ali", "Ahmed", "Fatima", "Zainab", "Usman", "Ayesha", "Bilal", "Hamza", "Sana", "Omar", "Amina"]
+    last_names = ["Khan", "Malik", "Awan", "Chaudhry", "Butt", "Sheikh", "Qureshi", "Raza", "Siddiqui", "Mirza"]
+    prefixes = ["0300", "0301", "0321", "0333", "0345", "0312"]
+    
+    risk_profiles = [
+        {"status": "🟢 Green (Safe / Delivered)", "remark": "Reliable customer with zero history of RTO."},
+        {"status": "🟡 Yellow (Frequent Returner)", "remark": "Returns occasional orders. Proceed with caution."},
+        {"status": "🔴 Red (High Risk / RTO Fraud)", "remark": "Multiple fake orders or RTOs flagged across network."}
     ]
-    last_names = [
-        "Khan", "Malik", "Awan", "Chaudhry", "Butt", "Sheikh", "Qureshi", 
-        "Raza", "Siddiqui", "Mirza", "Gondal", "Jutt", "Rajput", "Hashmi"
-    ]
-    prefixes = ["0300", "0301", "0302", "0321", "0333", "0342", "0345", "0312"]
-    statuses = ["Safe / Delivered", "High Risk / RTO", "Frequent Returner"]
     
     data = []
-    for i in range(1, num_records + 1):
-        name = f"{random.choice(first_names)} {random.choice(last_names)}"
+    for i in range(1, 101):
         phone = f"{random.choice(prefixes)}{random.randint(1000000, 9999999)}"
-        orders = random.randint(1, 10)
+        name = f"{random.choice(first_names)} {random.choice(last_names)}"
+        profile = random.choices(risk_profiles, weights=[70, 20, 10])[0]
         
-        status = random.choices(statuses, weights=[70, 20, 10])[0]
-        
-        if status == "Safe / Delivered":
-            rto = 0
-        else:
-            rto = random.randint(1, orders)
-            
         data.append({
-            "Customer_ID": f"PK-CUST-{1000 + i}",
-            "Customer_Name": name,
             "Phone": phone,
-            "Total_Orders": orders,
-            "RTO_Count": rto,
-            "Risk_Status": status
+            "Customer_Name": name,
+            "Total_Orders": random.randint(1, 12),
+            "Risk_Status": profile["status"],
+            "Remarks": profile["remark"]
         })
-        
     return pd.DataFrame(data)
 
-# Load database
-df_db = generate_pakistani_mock_data(60)
+df_network = load_mock_network_data()
 
-# ==================== INTERFACE 1: MERCHANT LOOKUP ====================
-if app_mode == "🔍 Merchant Lookup Portal":
-    st.title("🛡️ COD Shield: Merchant Risk Verification")
-    st.markdown("Check customer delivery history and RTO risk across multiple Pakistani e-commerce brands before dispatching orders.")
-    st.markdown("---")
+# Tabs for Single Search vs Bulk Upload/Download
+tab1, tab2 = st.tabs(["🔍 Single Number Search", "📂 Bulk Upload & Download"])
 
-    search_query = st.text_input("Enter Customer Phone Number or Name:", placeholder="e.g. 0300 or Ali")
-
-    if search_query:
-        filtered_df = df_db[
-            df_db['Phone'].str.contains(search_query, na=False) | 
-            df_db['Customer_Name'].str.contains(search_query, case=False, na=False)
-        ]
-        if not filtered_df.empty:
-            st.success(f"Found {len(filtered_df)} matching record(s) in the Shared Network!")
-            st.dataframe(filtered_df, use_container_width=True)
+# ================= TAB 1: SINGLE SEARCH =================
+with tab1:
+    st.subheader("Instant Customer Risk Check")
+    search_phone = st.text_input("Enter Customer Phone Number:", placeholder="e.g. 03001234567")
+    
+    if search_phone:
+        result = df_network[df_network['Phone'].str.contains(search_phone)]
+        if not result.empty:
+            for _, row in result.iterrows():
+                st.markdown("---")
+                st.write(f"**Customer Name:** {row['Customer_Name']}")
+                st.write(f"**Phone Number:** {row['Phone']}")
+                st.write(f"**Total Orders in Network:** {row['Total_Orders']}")
+                
+                # Display Color Coded Status Box
+                status = row['Risk_Status']
+                if "Green" in status:
+                    st.success(f"**COD Behavior:** {status}")
+                elif "Yellow" in status:
+                    st.warning(f"**COD Behavior:** {status}")
+                else:
+                    st.error(f"**COD Behavior:** {status}")
+                    
+                st.info(f"**Remark:** {row['Remarks']}")
         else:
-            st.warning("No risky history found. This customer appears clean in the network!")
-    else:
-        st.info("💡 Tip: Type a phone prefix (like 0300) or a name to check risk status.")
+            st.success("🟢 **Green (Clean / New Customer)**: No negative history found in the network. Safe to ship!")
 
-# ==================== INTERFACE 2: ADMIN DASHBOARD (MOISE) ====================
-elif app_mode == "⚙️ Admin Dashboard (Moise)":
-    st.title("👑 COD Shield: Owner & Admin Control Panel")
-    st.markdown("Welcome back, Moise! Here is the high-level overview of your network performance.")
-    st.markdown("---")
-
-    # Metrics Row
-    col1, col2, col3 = st.columns(3)
-    total_customers = len(df_db)
-    high_risk_count = len(df_db[df_db['Risk_Status'] != "Safe / Delivered"])
-    safe_count = len(df_db[df_db['Risk_Status'] == "Safe / Delivered"])
-
-    col1.metric("Total Network Records", total_customers)
-    col2.metric("High Risk / RTO Flagged", high_risk_count)
-    col3.metric("Safe / Delivered", safe_count)
-
-    st.markdown("---")
-    st.subheader("📋 Full Shared Database Management")
-    st.dataframe(df_db, use_container_width=True)
+# ================= TAB 2: BULK UPLOAD & DOWNLOAD =================
+with tab2:
+    st.subheader("Bulk Order Verification & Report Download")
+    st.markdown("Upload your CSV or Excel file containing customer phone numbers to scan them all at once.")
+    
+    uploaded_file = st.file_uploader("Upload CSV file", type=["csv"])
+    
+    if uploaded_file is not None:
+        user_df = pd.read_csv(uploaded_file)
+        st.write("Uploaded Data Preview:", user_df.head())
+        
+        if st.button("Run Bulk Scan"):
+            # Simulate matching uploaded data with our network database
+            st.success("Scan completed successfully!")
+            
+            # Add mock risk status to uploaded data for demonstration
+            user_df['Risk_Status'] = [random.choice(["🟢 Green", "🟡 Yellow", "🔴 Red"]) for _ in range(len(user_df))]
+            
+            st.dataframe(user_df, use_container_width=True)
+            
+            # Download Processed Data Option
+            csv_data = user_df.to_csv(index=False).encode('utf-8')
+            st.download_button(
+                label="📥 Download Risk Verified Report (CSV)",
+                data=csv_data,
+                file_name="cod_shield_verified_report.csv",
+                mime="text/csv",
+            )
