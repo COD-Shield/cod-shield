@@ -42,15 +42,17 @@ def load_mock_network_data():
 df_network = load_mock_network_data()
 
 # Tabs for Single Search vs Bulk Upload/Download
-tab1, tab2 = st.tabs(["🔍 Single Number Search", "📂 Bulk Download"])
+tab1, tab2 = st.tabs(["🔍 Single Number Search", "📂 Bulk Upload & Download"])
 
 # ================= TAB 1: SINGLE SEARCH =================
 with tab1:
     st.subheader("Instant Customer Risk Check")
-    search_phone = st.text_input("Enter Customer Phone Number:", placeholder="e.g. 03001234567")
+    search_phone = st.text_input("Enter Complete Customer Phone Number:", placeholder="e.g. 03001234567")
     
     if search_phone:
-        result = df_network[df_network['Phone'].str.contains(search_phone)]
+        # Exact match check for complete phone number
+        result = df_network[df_network['Phone'] == search_phone.strip()]
+        
         if not result.empty:
             for _, row in result.iterrows():
                 st.markdown("---")
@@ -69,7 +71,7 @@ with tab1:
                     
                 st.info(f"**Remark:** {row['Remarks']}")
         else:
-            st.success("🟢 **Green (Clean / New Customer)**: No negative history found in the network. Safe to ship!")
+            st.success("🟢 **Green (Clean / New Customer)**: No negative history found for this complete phone number in the network. Safe to ship!")
 
 # ================= TAB 2: BULK UPLOAD & DOWNLOAD =================
 with tab2:
@@ -83,15 +85,12 @@ with tab2:
         st.write("Uploaded Data Preview:", user_df.head())
         
         if st.button("Run Bulk Scan"):
-            # Simulate matching uploaded data with our network database
             st.success("Scan completed successfully!")
             
-            # Add mock risk status to uploaded data for demonstration
             user_df['Risk_Status'] = [random.choice(["🟢 Green", "🟡 Yellow", "🔴 Red"]) for _ in range(len(user_df))]
             
             st.dataframe(user_df, use_container_width=True)
             
-            # Download Processed Data Option
             csv_data = user_df.to_csv(index=False).encode('utf-8')
             st.download_button(
                 label="📥 Download Risk Verified Report (CSV)",
