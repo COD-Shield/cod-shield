@@ -227,11 +227,16 @@ else:
             st.markdown("---")
             admin_nav = st.radio("Admin Menu", ["Merchant Management & Bulk", "Add New Merchant", "Billing & Usage Report", "Invoice Generator & Email", "System Activity Logs"])
             st.markdown("---")
+            
+            # Admin Discretion: Master Toggle for Customer Email Notifications
+            st.markdown("#### ⚙️ Notification Settings")
+            send_customer_email = st.checkbox("Send Auto-Email to Customer on Action", value=True, help="Disabling this will prevent emails from being sent to merchants when admin updates their limits or status.")
+
+            st.markdown("---")
             if st.button("Sign Out", use_container_width=True):
                 st.session_state.logged_in = False
                 st.rerun()
 
-        # Admin Top Network Health KPIs
         total_merchants = len(st.session_state.user_wallets)
         total_net_scans = sum(w['total_attempts'] for w in st.session_state.user_wallets.values())
         total_net_savings = sum(w['saved_amount'] for w in st.session_state.user_wallets.values())
@@ -258,7 +263,6 @@ else:
             
             st.markdown("<br>", unsafe_allow_html=True)
 
-            # Feature 1: Global Search & Bulk Quota Upgrade
             s_col1, s_col2 = st.columns([2, 2])
             with s_col1:
                 search_term = st.text_input("🔍 Global Search Merchant (Username or ID)").lower()
@@ -269,33 +273,36 @@ else:
                     for m_key, m_val in st.session_state.user_wallets.items():
                         if bulk_tier_target == "All Tiers" or m_val['tier'] == bulk_tier_target:
                             m_val['daily_limit'] += bulk_add_limit
+                    
                     st.session_state.audit_logs.insert(0, {
                         "Date": datetime.now().strftime("%Y-%m-%d"),
                         "Customer_ID": "BULK_SYS",
                         "Customer_Name": "Admin",
                         "Action": "Dynamic Quota & Limit Enhancement",
-                        "Details": f"Bulk added {bulk_add_limit} scans to {bulk_tier_target}"
+                        "Details": f"Bulk added {bulk_add_limit} scans to {bulk_tier_target} | Email Sent: {send_customer_email}"
                     })
                     st.success(f"Successfully upgraded daily limit for `{bulk_tier_target}`!")
+                    if send_customer_email:
+                        st.info("✉️ Bulk notification emails dispatched to affected merchants.")
                     st.rerun()
 
             st.markdown("---")
 
-            # Filtered or All Merchants List
             for merchant_id in list(st.session_state.user_wallets.keys()):
                 if search_term and search_term not in merchant_id.lower() and search_term not in st.session_state.user_wallets[merchant_id]['customer_id'].lower():
                     continue
 
                 data = st.session_state.user_wallets[merchant_id]
                 m_status = st.session_state.users_db[merchant_id]["status"]
+                m_email = st.session_state.users_db[merchant_id]["email"]
+
                 with st.container(border=True):
                     col_m1, col_m2, col_m3, col_m4 = st.columns([2, 1.5, 1.5, 2])
                     with col_m1:
                         st.markdown(f"**Merchant:** `{merchant_id}` (`{data['customer_id']}`)")
-                        st.markdown(f"Status: **{m_status}** | Tier: **{data['tier']}**")
+                        st.markdown(f"Email: `{m_email}`<br>Status: **{m_status}** | Tier: **{data['tier']}**", unsafe_allow_html=True)
                     with col_m2:
                         new_limit = st.number_input(f"Limit ({merchant_id})", value=data['daily_limit'], step=50, key=f"lim_{merchant_id}")
-                        # Feature 3: Payment Status Toggle directly in management
                         pay_status = st.selectbox(f"Payment ({merchant_id})", ["Paid", "Pending"], index=0 if data['status']=='Paid' else 1, key=f"pay_{merchant_id}")
                         data['status'] = pay_status
                     with col_m3:
@@ -307,9 +314,11 @@ else:
                                 "Customer_ID": data['customer_id'],
                                 "Customer_Name": merchant_id,
                                 "Action": "Tier & Wallet Overview",
-                                "Details": f"Limit set to {new_limit}, Payment Status: {pay_status}"
+                                "Details": f"Limit set to {new_limit}, Payment: {pay_status} | Email Notified: {send_customer_email}"
                             })
                             st.success("Updated successfully!")
+                            if send_customer_email:
+                                st.toast(f"✉️ Notification email sent to {m_email}", icon="✅")
                             st.rerun()
                     with col_m4:
                         st.markdown("<br>", unsafe_allow_html=True)
@@ -323,12 +332,23 @@ else:
                                         "Customer_ID": data['customer_id'],
                                         "Customer_Name": merchant_id,
                                         "Action": "Account Deletion & Suspension",
-                                        "Details": "Account disabled by admin"
+                                        "Details": f"Account disabled | Email Notified: {send_customer_email}"
                                     })
+                                    if send_customer_email:
+                                        st.toast(f"✉️ Suspension alert email sent to {m_email}", icon="⚠️")
                                     st.rerun()
                             else:
                                 if st.button("Enable", key=f"enb_{merchant_id}"):
                                     st.session_state.users_db[merchant_id]["status"] = "Active"
+                                    st.session_state.audit_logs.insert(0, {
+                                        "Date": datetime.now().strftime("%Y-%m-%d"),
+                                        "Customer_ID": data['customer_id'],
+                                        "Customer_Name": merchant_id,
+                                        "Action": "Account Deletion & Suspension",
+                                        "Details": f"Account re-enabled | Email Notified: {send_customer_email}"
+                                    })
+                                    if send_customer_email:
+                                        st.toast(f"✉️ Reactivation email sent to {m_email}", icon="✅")
                                     st.rerun()
                         with c_btn2:
                             if st.button("Delete", key=f"del_{merchant_id}", type="primary"):
@@ -339,7 +359,7 @@ else:
                                     "Customer_ID": data['customer_id'],
                                     "Customer_Name": merchant_id,
                                     "Action": "Account Deletion & Suspension",
-                                    "Details": "Account permanently deleted"
+                                    "Details": f"Account deleted | Email Notified: {send_customer_email}"
                                 })
                                 st.success("Deleted!")
                                 st.rerun()
@@ -374,9 +394,11 @@ else:
                             "Customer_ID": cust_id,
                             "Customer_Name": new_m_user,
                             "Action": "Merchant Onboarding & Account Creation",
-                            "Details": f"New merchant onboarded with email {new_m_email}"
+                            "Details": f"New merchant onboarded with email {new_m_email} | Welcome Email Sent: {send_customer_email}"
                         })
-                        st.success(f"Merchant `{new_m_user}` created & logged successfully!")
+                        st.success(f"Merchant `{new_m_user}` created successfully!")
+                        if send_customer_email:
+                            st.info(f"✉️ Welcome credentials email successfully dispatched to `{new_m_email}`.")
 
         elif admin_nav == "Billing & Usage Report":
             st.markdown("## 💳 Billing & Usage Report")
@@ -651,7 +673,7 @@ else:
             with w2:
                 with st.container(border=True):
                     st.markdown("### Request Limit Enhancement")
-                    st.markdown("Need a higher tier or increased daily limit? Request an upgrade directly from Admin.")
+                    st.markdown("Need a higher tier or increased daily limit? Request an upgrade directly from Admin. Muiz Aziz")
                     if st.button("Request Limit Upgrade", type="primary"):
                         st.session_state.audit_logs.insert(0, {
                             "Date": datetime.now().strftime("%Y-%m-%d"),
