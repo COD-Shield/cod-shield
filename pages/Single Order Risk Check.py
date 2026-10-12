@@ -1,6 +1,6 @@
 import streamlit as st
 
-st.title("🔍 Single Order Risk Check (Phase 1)")
+st.title("🔍 Single Order Risk Check")
 
 if not st.session_state.get('logged_in', False):
     st.warning("⚠️ Pehle main page par ja kar Login karein!")
