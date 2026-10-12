@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 
 st.set_page_config(
-    page_title="COD Shield | Executive & Risk Intelligence",
+    page_title="COD Shield | Risk Intelligence",
     page_icon="🛡️",
     layout="wide"
 )
@@ -13,6 +13,8 @@ if 'current_user' not in st.session_state:
     st.session_state.current_user = ""
 if 'user_role' not in st.session_state:
     st.session_state.user_role = ""
+if 'lang' not in st.session_state:
+    st.session_state.lang = "English"
 
 if 'users_db' not in st.session_state:
     st.session_state.users_db = {
@@ -26,8 +28,8 @@ if 'user_wallets' not in st.session_state:
         "operator": {"daily_limit": 50, "used_today": 18, "balance": 450.0, "total_attempts": 85, "saved_amount": 34000}
     }
 
-# Ramp-Inspired Two-Column Layout Styling
-st.markdown("""
+# Dynamic Styling (Hides Sidebar completely when NOT logged in)
+hide_sidebar_css = """
     <style>
     .stApp {
         background-color: #f4f6f4 !important;
@@ -35,7 +37,7 @@ st.markdown("""
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
     .exec-heading {
-        font-size: 32px;
+        font-size: 30px;
         font-weight: 700;
         color: #0e3b2e;
         letter-spacing: -0.02em;
@@ -63,15 +65,30 @@ st.markdown("""
         font-size: 12px;
         font-weight: 600;
     }
-    </style>
-""", unsafe_allow_html=True)
+"""
 
 if not st.session_state.logged_in:
-    # Top Navigation Bar for Landing
-    col_nav1, col_nav2 = st.columns([4, 1])
+    # Hide sidebar when not logged in
+    hide_sidebar_css += """
+        section[data-testid="stSidebar"] {
+            display: none !important;
+        }
+    """
+
+hide_sidebar_css += "</style>"
+st.markdown(hide_sidebar_css, unsafe_allow_html=True)
+
+if not st.session_state.logged_in:
+    # Top Navigation Bar with Language Toggle
+    col_nav1, col_nav2, col_nav3 = st.columns([3, 1.2, 0.8])
     with col_nav1:
-        st.markdown("**🛡️ COD SHIELD** &nbsp;<span style='color: #4b5563; font-size: 13px;'>— Protecting your margins, one delivery at a time.</span>", unsafe_allow_html=True)
+        st.markdown("**🛡️ COD SHIELD** &nbsp;<span style='color: #4b5563; font-size: 13px;'>— Protecting margins, one delivery at a time.</span>", unsafe_allow_html=True)
     with col_nav2:
+        selected_lang = st.selectbox("Language / زبان", ["English", "اردو"], index=0 if st.session_state.lang=="English" else 1, label_visibility="collapsed")
+        if selected_lang != st.session_state.lang:
+            st.session_state.lang = selected_lang
+            st.rerun()
+    with col_nav3:
         st.markdown("<div style='text-align: right;'><span class='status-badge'>● V2.0 LIVE</span></div>", unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
@@ -80,39 +97,61 @@ if not st.session_state.logged_in:
     left_col, right_col = st.columns([1.5, 1], gap="large")
 
     with left_col:
-        st.markdown('<p class="exec-heading">Executive Summary & Risk Intelligence</p>', unsafe_allow_html=True)
-        st.markdown(
-            '<p class="exec-sub">Cash on Delivery (COD) accounts for over 85% of retail transactions in South Asian e-commerce. However, chronic returners and fake orders cause severe financial bleeding. COD Shield is a collective pre-dispatch intelligence platform designed to eliminate blind shipping.</p>',
-            unsafe_allow_html=True
-        )
-
-        st.markdown("#### 🚨 The Core Problem: Where Merchants Lose Money")
-        
-        st.markdown("""
-        <div class="problem-box">
-            <b>📦 Stock & Tear Damage</b><br>
-            <span style="font-size: 13px; color: #4b5563;">Returned items frequently come back with crushed boxes, torn packaging, and unserviceable inventory that cannot be resold.</span>
-        </div>
-        """, unsafe_allow_html=True)
-
-        st.markdown("""
-        <div class="problem-box">
-            <b>💸 Two-Way Freight Drain</b><br>
-            <span style="font-size: 13px; color: #4b5563;">Merchants pay double courier charges (dispatch + return transit) on every failed or refused delivery.</span>
-        </div>
-        """, unsafe_allow_html=True)
-
-        st.markdown("""
-        <div class="problem-box">
-            <b>👩‍🏭 Wasted Overhead & Labor</b><br>
-            <span style="font-size: 13px; color: #4b5563;">Bubble wrap, custom boxes, tape, and employee man-hours are squandered on dead-end orders.</span>
-        </div>
-        """, unsafe_allow_html=True)
+        if st.session_state.lang == "English":
+            st.markdown('<p class="exec-heading">Executive Summary & Risk Intelligence</p>', unsafe_allow_html=True)
+            st.markdown(
+                '<p class="exec-sub">Cash on Delivery (COD) accounts for over 85% of retail transactions in South Asian e-commerce. However, chronic returners and fake orders cause severe financial bleeding. COD Shield is a collective pre-dispatch intelligence platform designed to eliminate blind shipping.</p>',
+                unsafe_allow_html=True
+            )
+            st.markdown("#### 🚨 The Core Problem: Where Merchants Lose Money")
+            st.markdown("""
+            <div class="problem-box">
+                <b>📦 Stock & Tear Damage</b><br>
+                <span style="font-size: 13px; color: #4b5563;">Returned items frequently come back with crushed boxes, torn packaging, and unserviceable inventory that cannot be resold.</span>
+            </div>
+            """, unsafe_allow_html=True)
+            st.markdown("""
+            <div class="problem-box">
+                <b>💸 Two-Way Freight Drain</b><br>
+                <span style="font-size: 13px; color: #4b5563;">Merchants pay double courier charges (dispatch + return transit) on every failed or refused delivery.</span>
+            </div>
+            """, unsafe_allow_html=True)
+            st.markdown("""
+            <div class="problem-box">
+                <b>👩‍🏭 Wasted Overhead & Labor</b><br>
+                <span style="font-size: 13px; color: #4b5563;">Bubble wrap, custom boxes, tape, and employee man-hours are squandered on dead-end orders.</span>
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            st.markdown('<p class="exec-heading" style="direction: rtl; text-align: right;">خلاصہ اور رسک انٹیلی جنس</p>', unsafe_allow_html=True)
+            st.markdown(
+                '<p class="exec-sub" style="direction: rtl; text-align: right;">پاکستان اور جنوبی ایشیا میں ای کامرس کا 85 فیصد سے زائد کاروبار کیش آن ڈلیوری (COD) پر ہوتا ہے۔ لیکن بار بار پارسل واپس کرنے والے اور فیک آرڈرز مرچنٹ کا مالی نقصان کرتے ہیں۔ سی ڈی شیلڈ ایک ایسی پلیٹ فارم ہے جو روانگی سے پہلے ہی رسک چیک کر کے آپ کا نقصان بچاتی ہے۔</p>',
+                unsafe_allow_html=True
+            )
+            st.markdown("<h4 style='direction: rtl; text-align: right;'>🚨 اصل نقصان کہاں ہوتا ہے؟</h4>", unsafe_allow_html=True)
+            st.markdown("""
+            <div class="problem-box" style="direction: rtl; text-align: right;">
+                <b>📦 اسٹاک اور ڈبہ پھٹنے کا نقصان</b><br>
+                <span style="font-size: 13px; color: #4b5563;">واپس آنے والے پارسلز کے اکثر ڈبے پھٹ جاتے ہیں اور پروڈکٹ ناقابلِ فروخت ہو جاتی ہے۔</span>
+            </div>
+            """, unsafe_allow_html=True)
+            st.markdown("""
+            <div class="problem-box" style="direction: rtl; text-align: right;">
+                <b>💸 دو طرفہ کوریئر کا کرایہ</b><br>
+                <span style="font-size: 13px; color: #4b5563;">فیک آرڈر بھیجنے اور واپس آنے پر مرچنٹ کو ڈبل کوریئر چارجز دینے پڑتے ہیں۔</span>
+            </div>
+            """, unsafe_allow_html=True)
+            st.markdown("""
+            <div class="problem-box" style="direction: rtl; text-align: right;">
+                <b>👩‍🏭 برباد لیبر اور پیکنگ</b><br>
+                <span style="font-size: 13px; color: #4b5563;">ببل ریپ، ڈبے، ٹیپ اور ملازمین کا وقت ان آرڈرز پر ضائع ہوتا ہے جو کبھی ڈلیور نہیں ہوتے۔</span>
+            </div>
+            """, unsafe_allow_html=True)
 
     with right_col:
         st.markdown("<br>", unsafe_allow_html=True)
         with st.container(border=True):
-            st.markdown("<h3 style='font-weight: 700; color: #0e3b2e; margin-bottom: 5px;'>🛡️ Merchant Portal Login</h3>", unsafe_allow_html=True)
+            st.markdown("<h3 style='font-weight: 700; color: #0e3b2e; margin-bottom: 5px;'>🛡️ Merchant Login</h3>", unsafe_allow_html=True)
             st.markdown("<p style='color: #4b5563; font-size: 13px; margin-bottom: 20px;'>Sign in to access your risk screening workspace.</p>", unsafe_allow_html=True)
             
             username = st.text_input("Username")
@@ -129,20 +168,19 @@ if not st.session_state.logged_in:
                     st.error("Invalid credentials.")
 
 else:
-    # Logged-in Dashboard View
+    # Logged-in Dashboard View (Sidebar is automatically visible here)
     curr_user = st.session_state.current_user
     wallet = st.session_state.user_wallets.get(curr_user, {"daily_limit": 50, "used_today": 0, "balance": 500.0, "total_attempts": 0, "saved_amount": 142000})
     remaining_quota = wallet['daily_limit'] - wallet['used_today']
 
     col_h1, col_h2 = st.columns([4, 1])
     with col_h1:
-        st.markdown("**🛡️ COD SHIELD** &nbsp;<span style='color: #4b5563; font-size: 13px;'>— Protecting your margins, one delivery at a time.</span>", unsafe_allow_html=True)
+        st.markdown("**🛡️ COD SHIELD** &nbsp;<span style='color: #4b5563; font-size: 13px;'>— Protecting margins, one delivery at a time.</span>", unsafe_allow_html=True)
     with col_h2:
         st.markdown(f"<div style='text-align: right;'><span class='status-badge'>● LIVE ({curr_user.upper()})</span></div>", unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
     
-    # Dashboard Header & Savings Ticker
     st.markdown("""
         <div style="background: linear-gradient(135deg, #0e3b2e 0%, #1f6f54 100%); padding: 30px; border-radius: 14px; color: white; margin-bottom: 20px;">
             <h1 style='margin:0; font-size: 32px; font-weight: 700;'>Operational Workspace Overview</h1>
