@@ -42,14 +42,6 @@ st.markdown("""
         box-shadow: 0 10px 30px rgba(14, 59, 46, 0.2);
         margin-bottom: 25px;
     }
-    .savings-counter-box {
-        background: rgba(255, 255, 255, 0.12);
-        border: 1px solid rgba(255, 255, 255, 0.25);
-        padding: 15px 22px;
-        border-radius: 12px;
-        display: inline-block;
-        margin-top: 18px;
-    }
     div[data-testid="stVerticalBlock"] > div[data-testid="stContainer"] {
         background-color: #ffffff !important;
         border: 1px solid #e2e8f0 !important;
@@ -114,18 +106,21 @@ else:
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # Ramp Style Hero Banner with properly rendered HTML (unsafe_allow_html=True)
-    st.markdown(f"""
-        <div class="ramp-hero-banner">
-            <h1 style='margin:0; font-size: 36px; font-weight: 700; letter-spacing: -0.02em;'>Control your COD spend. Stop courier waste.</h1>
-            <p style='margin:10px 0 0 0; font-size: 16px; opacity: 0.9;'>Protect your gross margins by screening risky returners before dispatching packages and wasting two-way freight.</p>
-            
-            <div class="savings-counter-box">
-                <span style='font-size: 13px; color: #a3e635; text-transform: uppercase; font-weight: 600;'>Total Estimated Budget Saved</span><br>
-                <span style='font-size: 28px; font-weight: 800; color: #ffffff;'>Rs. {wallet['saved_amount']:,}</span>
-            </div>
-        </div>
-    """, unsafe_allow_html=True)
+    # Ramp Style Hero Banner using Streamlit Native Elements to avoid markdown code rendering bug
+    with st.container():
+        st.markdown("""
+<div class="ramp-hero-banner">
+<h1 style='margin:0; font-size: 34px; font-weight: 700; letter-spacing: -0.02em; color: white;'>Control your COD spend. Stop courier waste.</h1>
+<p style='margin:10px 0 0 0; font-size: 16px; opacity: 0.9; color: white;'>Protect your gross margins by screening risky returners before dispatching packages and wasting two-way freight.</p>
+</div>
+""", unsafe_allow_html=True)
+        
+        # Savings Counter Box using Streamlit metric/container styling
+        c_box1, c_box2 = st.columns([1, 2])
+        with c_box1:
+            with st.container(border=True):
+                st.markdown("<p style='font-size: 11px; color: #166534; text-transform: uppercase; font-weight: 700; margin:0;'>Total Estimated Budget Saved</p>", unsafe_allow_html=True)
+                st.markdown(f"<h2 style='font-size: 26px; font-weight: 800; color: #0e3b2e; margin:5px 0 0 0;'>Rs. {wallet['saved_amount']:,}</h2>", unsafe_allow_html=True)
 
     # Section 1: Metrics Overview
     st.markdown('<div class="ramp-section-title">01 / Spend & Performance Overview</div>', unsafe_allow_html=True)
