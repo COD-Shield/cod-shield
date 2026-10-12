@@ -26,7 +26,7 @@ if 'user_wallets' not in st.session_state:
         "operator": {"daily_limit": 50, "used_today": 18, "balance": 450.0, "total_attempts": 85, "saved_amount": 34000}
     }
 
-# Ramp-Inspired Design: Deep Forest Green, Clean White, Crisp Metrics
+# Ramp-Inspired Design CSS
 st.markdown("""
     <style>
     .stApp {
@@ -34,8 +34,6 @@ st.markdown("""
         color: #111827 !important;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
-    
-    /* Ramp Style Hero Banner with Savings Focus */
     .ramp-hero-banner {
         background: linear-gradient(135deg, #0e3b2e 0%, #1f6f54 100%);
         padding: 35px;
@@ -44,17 +42,14 @@ st.markdown("""
         box-shadow: 0 10px 30px rgba(14, 59, 46, 0.2);
         margin-bottom: 25px;
     }
-    
     .savings-counter-box {
-        background: rgba(255, 255, 255, 0.1);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        padding: 15px 20px;
-        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.12);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        padding: 15px 22px;
+        border-radius: 12px;
         display: inline-block;
-        margin-top: 15px;
+        margin-top: 18px;
     }
-
-    /* Clean Card Style */
     div[data-testid="stVerticalBlock"] > div[data-testid="stContainer"] {
         background-color: #ffffff !important;
         border: 1px solid #e2e8f0 !important;
@@ -62,7 +57,6 @@ st.markdown("""
         padding: 20px !important;
         box-shadow: 0 1px 3px rgba(0,0,0,0.02) !important;
     }
-
     .ramp-section-title {
         font-size: 12px;
         text-transform: uppercase;
@@ -74,7 +68,6 @@ st.markdown("""
         border-bottom: 2px solid #e2e8f0;
         padding-bottom: 6px;
     }
-    
     .status-badge {
         background-color: #0e3b2e;
         color: #5fb88a;
@@ -109,7 +102,7 @@ if not st.session_state.logged_in:
 else:
     curr_user = st.session_state.current_user
     curr_role = st.session_state.user_role
-    wallet = st.session_state.user_wallets.get(curr_user, {"daily_limit": 50, "used_today": 0, "balance": 500.0, "total_attempts": 0, "saved_amount": 0})
+    wallet = st.session_state.user_wallets.get(curr_user, {"daily_limit": 50, "used_today": 0, "balance": 500.0, "total_attempts": 0, "saved_amount": 142000})
     remaining_quota = wallet['daily_limit'] - wallet['used_today']
 
     # Top Navigation Bar
@@ -121,7 +114,7 @@ else:
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # Ramp Style Hero Banner highlighting Savings & Budget Control
+    # Ramp Style Hero Banner with properly rendered HTML (unsafe_allow_html=True)
     st.markdown(f"""
         <div class="ramp-hero-banner">
             <h1 style='margin:0; font-size: 36px; font-weight: 700; letter-spacing: -0.02em;'>Control your COD spend. Stop courier waste.</h1>
@@ -134,7 +127,7 @@ else:
         </div>
     """, unsafe_allow_html=True)
 
-    # Section 1: Metrics Overview (Ramp Executive Cards Style)
+    # Section 1: Metrics Overview
     st.markdown('<div class="ramp-section-title">01 / Spend & Performance Overview</div>', unsafe_allow_html=True)
     m1, m2, m3, m4 = st.columns(4)
     with m1:
