@@ -17,7 +17,7 @@ if 'user_role' not in st.session_state:
 if 'lang' not in st.session_state:
     st.session_state.lang = "English"
 
-# Extended Users & Wallets DB with Status and Tiers
+# Users Database with Status
 if 'users_db' not in st.session_state:
     st.session_state.users_db = {
         "admin": {"password": "admin123", "role": "Administrator", "status": "Active"},
@@ -25,10 +25,11 @@ if 'users_db' not in st.session_state:
         "merchant_sara": {"password": "pass123", "role": "Customer", "status": "Active"}
     }
 
+# User Wallets & Tiers Database
 if 'user_wallets' not in st.session_state:
     st.session_state.user_wallets = {
-        "merchant_ali": {"daily_limit": 1200, "used_today": 340, "balance": 45000.0, "total_attempts": 1150, "saved_amount": 340000, "tier": "Platinum"},
-        "merchant_sara": {"daily_limit": 500, "used_today": 120, "balance": 18000.0, "total_attempts": 650, "saved_amount": 142000, "tier": "Gold"}
+        "merchant_ali": {"daily_limit": 1200, "used_today": 340, "balance": 45000.0, "total_attempts": 1150, "saved_amount": 340000, "tier": "Platinum 💎"},
+        "merchant_sara": {"daily_limit": 500, "used_today": 120, "balance": 18000.0, "total_attempts": 650, "saved_amount": 142000, "tier": "Gold 🥇"}
     }
 
 # Mock Database for Phone Lookups
@@ -215,7 +216,7 @@ else:
             st.markdown("### 👑 ADMIN CONTROL PANEL")
             st.markdown(f"<span style='color: #4b5563; font-size: 12px;'>Logged in as: <b>ADMIN</b></span>", unsafe_allow_html=True)
             st.markdown("---")
-            admin_nav = st.radio("Admin Menu", ["Merchant Management", "System Activity Logs"])
+            admin_nav = st.radio("Admin Menu", ["Merchant Management", "Add New Merchant", "System Activity Logs"])
             st.markdown("---")
             if st.button("Sign Out", use_container_width=True):
                 st.session_state.logged_in = False
@@ -223,56 +224,81 @@ else:
 
         if admin_nav == "Merchant Management":
             st.markdown("## 👥 Merchant Account Management")
-            st.markdown("Monitor customer activities, adjust daily screening limits, or disable accounts.")
+            st.markdown("Monitor customer activities, adjust daily screening limits, disable/enable accounts, or delete merchants.")
             
             st.markdown("<br>", unsafe_allow_html=True)
             
-            # Display Merchants Table & Controls
-            for merchant_id, data in st.session_state.user_wallets.items():
+            for merchant_id in list(st.session_state.user_wallets.keys()):
+                data = st.session_state.user_wallets[merchant_id]
                 m_status = st.session_state.users_db[merchant_id]["status"]
                 with st.container(border=True):
                     col_m1, col_m2, col_m3, col_m4 = st.columns([2, 1.5, 1.5, 2])
                     with col_m1:
                         st.markdown(f"**Merchant:** `{merchant_id}`")
-                        st.markdown(f"Status: **{m_status}**")
+                        st.markdown(f"Status: **{m_status}** | Tier: **{data['tier']}**")
                     with col_m2:
-                        st.markdown(f"Tier: **{data['tier']}**")
-                        st.markdown(f"Scans Used: **{data['used_today']} / {data['daily_limit']}**")
+                        new_limit = st.number_input(f"Limit ({merchant_id})", value=data['daily_limit'], step=50, key=f"lim_{merchant_id}")
                     with col_m3:
-                        new_limit = st.number_input(f"New Limit ({merchant_id})", value=data['daily_limit'], step=50, key=f"lim_{merchant_id}")
+                        st.markdown("<br>", unsafe_allow_html=True)
+                        if st.button("Update Limit", key=f"upd_{merchant_id}", use_container_width=True):
+                            st.session_state.user_wallets[merchant_id]['daily_limit'] = new_limit
+                            st.success("Limit updated!")
+                            st.rerun()
                     with col_m4:
                         st.markdown("<br>", unsafe_allow_html=True)
-                        col_btn1, col_btn2 = st.columns(2)
-                        with col_btn1:
-                            if st.button("Update Limit", key=f"upd_{merchant_id}"):
-                                st.session_state.user_wallets[merchant_id]['daily_limit'] = new_limit
-                                st.success("Limit updated!")
-                                st.rerun()
-                        with col_btn2:
+                        c_btn1, c_btn2, c_btn3 = st.columns(3)
+                        with c_btn1:
                             if m_status == "Active":
-                                if st.button("Disable", key=f"dis_{merchant_id}", type="primary"):
+                                if st.button("Disable", key=f"dis_{merchant_id}"):
                                     st.session_state.users_db[merchant_id]["status"] = "Disabled"
                                     st.rerun()
                             else:
                                 if st.button("Enable", key=f"enb_{merchant_id}"):
                                     st.session_state.users_db[merchant_id]["status"] = "Active"
                                     st.rerun()
+                        with c_btn2:
+                            pass # spacing
+                        with c_btn3:
+                            if st.button("Delete", key=f"del_{merchant_id}", type="primary"):
+                                del st.session_state.users_db[merchant_id]
+                                del st.session_state.user_wallets[merchant_id]
+                                st.success("Merchant deleted successfully!")
+                                st.rerun()
+
+        elif admin_nav == "Add New Merchant":
+            st.markdown("## ➕ Onboard New Merchant Account")
+            st.markdown("Create a new merchant profile with customized login credentials and screening limits.")
+            
+            st.markdown("<br>", unsafe_allow_html=True)
+            with st.container(border=True):
+                new_m_user = st.text_input("New Merchant Username")
+                new_m_pass = st.text_input("New Merchant Password", type="password")
+                new_m_limit = st.number_input("Initial Daily Screening Limit", value=200, step=50)
+                
+                st.markdown("<br>", unsafe_allow_html=True)
+                if st.button("Create Merchant Account", type="primary", use_container_width=True):
+                    if not new_m_user or not new_m_pass:
+                        st.error("Please provide both username and password.")
+                    elif new_m_user in st.session_state.users_db:
+                        st.error("Merchant username already exists!")
+                    else:
+                        st.session_state.users_db[new_m_user] = {"password": new_m_pass, "role": "Customer", "status": "Active"}
+                        st.session_state.user_wallets[new_m_user] = {"daily_limit": new_m_limit, "used_today": 0, "balance": 10000.0, "total_attempts": 5, "saved_amount": 1500, "tier": "Bronze 🥉"}
+                        st.success(f"Merchant `{new_m_user}` created successfully!")
 
         elif admin_nav == "System Activity Logs":
             st.markdown("## 📊 System Activity & Audit Logs")
             st.markdown("Recent screening attempts across the network.")
             st.dataframe(pd.DataFrame([
                 {"Time": "2026-10-12 20:15", "Merchant": "merchant_ali", "Phone": "03001234567", "Risk": "HIGH"},
-                {"Time": "2026-10-12 19:42", "Merchant": "merchant_sara", "Phone": "03219876543", "Risk": "LOW"},
-                {"Time": "2026-10-12 18:30", "Merchant": "merchant_ali", "Phone": "03335554433", "Risk": "MEDIUM"}
+                {"Time": "2026-10-12 19:42", "Merchant": "merchant_sara", "Phone": "03219876543", "Risk": "LOW"}
             ]), use_container_width=True)
 
     # ==================== CUSTOMER PORTAL ====================
     else:
-        wallet = st.session_state.user_wallets.get(curr_user, {"daily_limit": 500, "used_today": 0, "balance": 5000.0, "total_attempts": 0, "saved_amount": 10000, "tier": "Bronze"})
-        remaining_quota = wallet['daily_limit']--wallet['used_today'] if 'used_today' in wallet else wallet['daily_limit']
-
-        # Determine Tier automatically based on total attempts
+        wallet = st.session_state.user_wallets.get(curr_user, {"daily_limit": 500, "used_today": 0, "balance": 5000.0, "total_attempts": 0, "saved_amount": 10000, "tier": "Bronze 🥉"})
+        
+        # Automatic Tier Calculation
         if wallet['total_attempts'] >= 1000:
             wallet['tier'] = "Platinum 💎"
         elif wallet['total_attempts'] >= 300:
@@ -284,7 +310,7 @@ else:
 
         with st.sidebar:
             st.markdown("### 🛡️ COD SHIELD WORKSPACE")
-            st.markdown(f"<span style='color: #4b5563; font-size: 12px;'>Merchant: <b>{curr_user.upper()}</b><br>Classification: <b>{wallet['tier']}</b></span>", unsafe_allow_html=True)
+            st.markdown(f"<span style='color: #4b5563; font-size: 12px;'>Merchant: <b>{curr_user.upper()}</b><br>Tier: <b>{wallet['tier']}</b></span>", unsafe_allow_html=True)
             st.markdown("---")
             
             nav_choice = st.radio("Navigation", ["Dashboard Overview", "Single Order Risk Check", "Bulk CSV Upload", "Wallet & Quota"])
