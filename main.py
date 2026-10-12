@@ -26,7 +26,7 @@ if 'user_wallets' not in st.session_state:
         "operator": {"daily_limit": 50, "used_today": 18, "balance": 450.0, "total_attempts": 85}
     }
 
-# Consistent Warm Paper Theme & Custom Styling
+# Consistent Warm Paper Theme & Custom Banner Styling
 st.markdown("""
     <style>
     .stApp {
@@ -48,16 +48,22 @@ st.markdown("""
         letter-spacing: -0.03em;
         margin-bottom: 0px;
     }
-    .hero-motto {
-        font-size: 18px;
-        font-weight: 700;
-        color: #b91c1c;
-        margin-top: 8px;
+    /* Dynamic Cost-Saving Banner Style */
+    .savings-banner {
+        background: linear-gradient(135deg, #0f291e 0%, #163829 100%);
+        border-left: 6px solid #4ade80;
+        padding: 24px;
+        border-radius: 14px;
+        color: #ffffff;
+        box-shadow: 0 10px 25px rgba(15, 41, 30, 0.15);
+        margin-top: 15px;
+        margin-bottom: 25px;
     }
-    .hero-urdu {
-        font-size: 15px;
-        color: #57534e;
-        margin-bottom: 20px;
+    .savings-banner h3 {
+        color: #4ade80;
+        margin-top: 0;
+        font-size: 22px;
+        font-weight: 800;
     }
     .section-header {
         font-size: 13px;
@@ -67,7 +73,7 @@ st.markdown("""
         font-weight: 700;
         border-bottom: 1px solid #e7e5e4;
         padding-bottom: 8px;
-        margin-top: 30px;
+        margin-top: 25px;
         margin-bottom: 20px;
     }
     div[data-testid="stVerticalBlock"] > div[data-testid="stContainer"] {
@@ -102,7 +108,7 @@ if not st.session_state.logged_in:
 else:
     curr_user = st.session_state.current_user
     curr_role = st.session_state.user_role
-    wallet = st.session_state.user_wallets.get(curr_user, {"daily_limit": 50, "used_today": 0, "balance": 500.0, "total_attempts": 0})
+    wallet = st.session_state.user_wallets.get(curr_user, {"daily_limit": 50, "used_today": 0, "balance": 500.0, "total_attempts": 320})
     remaining_quota = wallet['daily_limit'] - wallet['used_today']
 
     # Header Bar
@@ -114,12 +120,33 @@ else:
 
     st.markdown("<br>", unsafe_allow_html=True)
     
-    # Hero Introduction & Bilingual Motto
+    # Hero Title & Motto
     st.markdown('<p class="hero-title">Better decisions, fewer returns.</p>', unsafe_allow_html=True)
-    st.markdown('<p class="hero-motto">"Stop shipping blind. Save your stock, labor, and courier freight from chronic returners before dispatch."</p>', unsafe_allow_html=True)
-    st.markdown('<p class="hero-urdu"><b>اردو:</b> اندھا دھند پارسل بھیجنا بند کریں۔ روانہ کرنے سے پہلے بار بار آرڈر واپس کرنے والوں سے اپنا اسٹاک، لیبر اور کوریئر کا خرچہ بچائیں۔</p>', unsafe_allow_html=True)
+    st.markdown("<p style='color: #57534e; font-size: 16px; margin-top:4px;'>Stop shipping blind. Save your stock, labor, and courier freight from chronic returners before dispatch.</p>", unsafe_allow_html=True)
 
-    st.markdown("<br>", unsafe_allow_html=True)
+    # 🌟 Interactive Merchant Cost-Saving Banner (Bilingual)
+    st.markdown("""
+        <div class="savings-banner">
+            <h3>💰 How COD Shield Saves Your Money & Stock (آپ کے پیسے اور اسٹاک کی بچت کیسے ہوتی ہے؟)</h3>
+            <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-top: 12px;">
+                <div style="flex: 1; min-width: 250px;">
+                    <b>1. Pre-Dispatch Verification</b><br>
+                    Check buyer history <i>before</i> packing. Filter out chronic returners to keep your stock safe from torn boxes and damaged inventory.<br>
+                    <span style="color: #cbd5e1; font-size: 13px;">(آئٹم پیک کرنے سے پہلے کسٹمر کی ہسٹری چیک کریں اور ریٹرن کرنے والوں کو فلٹر کر کے اپنا اسٹاک محفوظ بنائیں۔)</span>
+                </div>
+                <div style="flex: 1; min-width: 250px;">
+                    <b>2. Eliminate Two-Way Freight</b><br>
+                    Stop paying double courier charges (dispatch + return) on fake orders that drain your monthly profit margins.<br>
+                    <span style="color: #cbd5e1; font-size: 13px;">(فیک آرڈرز پر جانے اور واپس آنے والے دو طرفہ کوریئر کے کرایوں کے فضول خرچے سے جان چھٹائیں۔)</span>
+                </div>
+                <div style="flex: 1; min-width: 250px;">
+                    <b>3. Save Labor & Packaging</b><br>
+                    Stop wasting bubble wraps, boxes, tape, and employee hours on orders destined for rejection.<br>
+                    <span style="color: #cbd5e1; font-size: 13px;">(ببل ریپ، ڈبے، ٹیپ اور لیبر کی محنت صرف ان خریداروں پر لگائیں جو واقعی پارسل لینا چاہتے ہیں۔)</span>
+                </div>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
 
     # Section 1: Metrics Overview
     st.markdown('<div class="section-header">01 / Operational Workspace Overview</div>', unsafe_allow_html=True)
@@ -140,22 +167,6 @@ else:
         with st.container(border=True):
             st.markdown("<p style='color:#78716c; font-size:12px; margin:0;'>WALLET BALANCE</p>", unsafe_allow_html=True)
             st.markdown(f"<h3 style='margin:5px 0 0 0; color:#0d9488;'>Rs. {wallet['balance']}</h3>", unsafe_allow_html=True)
-
-    # Section 2: Why COD Shield Saves Merchant Money (Bilingual Impact Box)
-    st.markdown('<div class="section-header">02 / Why Merchants Lose Money on COD & How We Save It</div>', unsafe_allow_html=True)
-    
-    with st.container(border=True):
-        col_eng, col_urd = st.columns(2)
-        with col_eng:
-            st.markdown("#### 📉 Merchant Loss Factors")
-            st.markdown("- **📦 Stock & Tear Damage:** Returned parcels often come back with torn boxes and crushed unsellable items.")
-            st.markdown("- **💸 Two-Way Freight:** Paying double shipping charges on fake orders eats profit margins.")
-            st.markdown("- **👩‍🏭 Wasted Labor:** Packing materials and employee time are wasted on fake orders.")
-        with col_urd:
-            st.markdown("#### 🇵🇰 مرچنٹ کا اصل نقصان اور بچت")
-            st.markdown("- **📦 اسٹاک اور ڈبہ پھٹنے کا نقصان:** ریٹرن پارسل اکثر پھٹے ہوئے ڈبے اور ضائع شدہ مال کے ساتھ واپس آتے ہیں۔")
-            st.markdown("- **💸 ڈبل کوریئر فریٹ:** فیک آرڈر پر آنے اور جانے کا دو طرفہ کرایہ پرافٹ کھا جاتا ہے۔")
-            st.markdown("- **👩‍🏭 برباد لیبر اور پیکنگ:** پیکنگ کا سامان اور ٹیم کی محنت ضائع ہونے سے بچتی ہے۔")
 
     st.markdown("<br>", unsafe_allow_html=True)
     if st.button("Sign Out Securely", use_container_width=True):
