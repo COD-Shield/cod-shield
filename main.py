@@ -9,7 +9,7 @@ st.set_page_config(
 # Initialize Session States
 if 'users_db' not in st.session_state:
     st.session_state.users_db = {
-        "admin": {"password": "admin123", "role": "Administrator"},
+        "Admin": {"password": "admin123", "role": "Administrator"},
         "operator": {"password": "pass123", "role": "Operator"}
     }
 if 'logged_in' not in st.session_state:
