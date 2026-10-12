@@ -25,11 +25,21 @@ if 'users_db' not in st.session_state:
         "merchant_sara": {"password": "pass123", "role": "Customer", "status": "Active", "email": "sara@boutique.pk"}
     }
 
-# User Wallets & Tiers Database
+# User Wallets, Tiers & Detailed Financial Billing Data
 if 'user_wallets' not in st.session_state:
     st.session_state.user_wallets = {
-        "merchant_ali": {"customer_id": "MERCH_01", "daily_limit": 1200, "used_today": 340, "balance": 45000.0, "total_attempts": 1150, "saved_amount": 340000, "tier": "Platinum 💎", "status": "Paid"},
-        "merchant_sara": {"customer_id": "MERCH_02", "daily_limit": 500, "used_today": 120, "balance": 18000.0, "total_attempts": 650, "saved_amount": 142000, "tier": "Gold 🥇", "status": "Pending"}
+        "merchant_ali": {
+            "customer_id": "MERCH_01", "daily_limit": 1200, "used_today": 340, "balance": 45000.0, 
+            "total_attempts": 1150, "saved_amount": 340000, "tier": "Platinum 💎", "status": "Paid",
+            "base_billing": 40000.0, "ait": 1800.0, "gst": 3200.0, "previous_os": 5000.0, 
+            "payment_received": 50000.0, "bill_sent_date": "2026-10-01"
+        },
+        "merchant_sara": {
+            "customer_id": "MERCH_02", "daily_limit": 500, "used_today": 120, "balance": 18000.0, 
+            "total_attempts": 650, "saved_amount": 142000, "tier": "Gold 🥇", "status": "Pending",
+            "base_billing": 15000.0, "ait": 675.0, "gst": 1200.0, "previous_os": 2500.0, 
+            "payment_received": 0.0, "bill_sent_date": "2026-10-05"
+        }
     }
 
 # Comprehensive Audit & System Activity Logs Database
@@ -225,13 +235,10 @@ else:
             st.markdown("### 👑 ADMIN CONTROL PANEL")
             st.markdown(f"<span style='color: #4b5563; font-size: 12px;'>Logged in as: <b>ADMIN</b></span>", unsafe_allow_html=True)
             st.markdown("---")
-            admin_nav = st.radio("Admin Menu", ["Merchant Management & Bulk", "Add New Merchant", "Billing & Usage Report", "Invoice Generator & Email", "System Activity Logs"])
+            admin_nav = st.radio("Admin Menu", ["Merchant Management & Bulk", "Add New Merchant", "Comprehensive Billing Report", "Invoice Generator & Email", "System Activity Logs"])
             st.markdown("---")
             
-            # Admin Discretion: Master Toggle for Customer Email Notifications
-            st.markdown("#### ⚙️ Notification Settings")
-            send_customer_email = st.checkbox("Send Auto-Email to Customer on Action", value=True, help="Disabling this will prevent emails from being sent to merchants when admin updates their limits or status.")
-
+            send_customer_email = st.checkbox("Send Auto-Email to Customer on Action", value=True)
             st.markdown("---")
             if st.button("Sign Out", use_container_width=True):
                 st.session_state.logged_in = False
@@ -279,11 +286,9 @@ else:
                         "Customer_ID": "BULK_SYS",
                         "Customer_Name": "Admin",
                         "Action": "Dynamic Quota & Limit Enhancement",
-                        "Details": f"Bulk added {bulk_add_limit} scans to {bulk_tier_target} | Email Sent: {send_customer_email}"
+                        "Details": f"Bulk added {bulk_add_limit} scans to {bulk_tier_target}"
                     })
                     st.success(f"Successfully upgraded daily limit for `{bulk_tier_target}`!")
-                    if send_customer_email:
-                        st.info("✉️ Bulk notification emails dispatched to affected merchants.")
                     st.rerun()
 
             st.markdown("---")
@@ -314,7 +319,7 @@ else:
                                 "Customer_ID": data['customer_id'],
                                 "Customer_Name": merchant_id,
                                 "Action": "Tier & Wallet Overview",
-                                "Details": f"Limit set to {new_limit}, Payment: {pay_status} | Email Notified: {send_customer_email}"
+                                "Details": f"Limit set to {new_limit}, Payment: {pay_status}"
                             })
                             st.success("Updated successfully!")
                             if send_customer_email:
@@ -332,35 +337,19 @@ else:
                                         "Customer_ID": data['customer_id'],
                                         "Customer_Name": merchant_id,
                                         "Action": "Account Deletion & Suspension",
-                                        "Details": f"Account disabled | Email Notified: {send_customer_email}"
+                                        "Details": "Account disabled by admin"
                                     })
                                     if send_customer_email:
-                                        st.toast(f"✉️ Suspension alert email sent to {m_email}", icon="⚠️")
+                                        st.toast(f"✉️ Suspension alert sent to {m_email}", icon="⚠️")
                                     st.rerun()
                             else:
                                 if st.button("Enable", key=f"enb_{merchant_id}"):
                                     st.session_state.users_db[merchant_id]["status"] = "Active"
-                                    st.session_state.audit_logs.insert(0, {
-                                        "Date": datetime.now().strftime("%Y-%m-%d"),
-                                        "Customer_ID": data['customer_id'],
-                                        "Customer_Name": merchant_id,
-                                        "Action": "Account Deletion & Suspension",
-                                        "Details": f"Account re-enabled | Email Notified: {send_customer_email}"
-                                    })
-                                    if send_customer_email:
-                                        st.toast(f"✉️ Reactivation email sent to {m_email}", icon="✅")
                                     st.rerun()
                         with c_btn2:
                             if st.button("Delete", key=f"del_{merchant_id}", type="primary"):
                                 del st.session_state.users_db[merchant_id]
                                 del st.session_state.user_wallets[merchant_id]
-                                st.session_state.audit_logs.insert(0, {
-                                    "Date": datetime.now().strftime("%Y-%m-%d"),
-                                    "Customer_ID": data['customer_id'],
-                                    "Customer_Name": merchant_id,
-                                    "Action": "Account Deletion & Suspension",
-                                    "Details": f"Account deleted | Email Notified: {send_customer_email}"
-                                })
                                 st.success("Deleted!")
                                 st.rerun()
 
@@ -386,7 +375,8 @@ else:
                         st.session_state.users_db[new_m_user] = {"password": new_m_pass, "role": "Customer", "status": "Active", "email": new_m_email}
                         st.session_state.user_wallets[new_m_user] = {
                             "customer_id": cust_id, "daily_limit": new_m_limit, "used_today": 0, 
-                            "balance": 10000.0, "total_attempts": 5, "saved_amount": 1500, "tier": "Bronze 🥉", "status": "Pending"
+                            "balance": 10000.0, "total_attempts": 5, "saved_amount": 1500, "tier": "Bronze 🥉", "status": "Pending",
+                            "base_billing": 8000.0, "ait": 360.0, "gst": 640.0, "previous_os": 0.0, "payment_received": 0.0, "bill_sent_date": datetime.now().strftime("%Y-%m-%d")
                         }
                         
                         st.session_state.audit_logs.insert(0, {
@@ -394,41 +384,52 @@ else:
                             "Customer_ID": cust_id,
                             "Customer_Name": new_m_user,
                             "Action": "Merchant Onboarding & Account Creation",
-                            "Details": f"New merchant onboarded with email {new_m_email} | Welcome Email Sent: {send_customer_email}"
+                            "Details": f"New merchant onboarded with email {new_m_email}"
                         })
                         st.success(f"Merchant `{new_m_user}` created successfully!")
-                        if send_customer_email:
-                            st.info(f"✉️ Welcome credentials email successfully dispatched to `{new_m_email}`.")
 
-        elif admin_nav == "Billing & Usage Report":
-            st.markdown("## 💳 Billing & Usage Report")
-            st.markdown("Review customer scan utilization, estimated freight savings, and payment status.")
+        elif admin_nav == "Comprehensive Billing Report":
+            st.markdown("## 💳 Comprehensive Accounting & Billing Report")
+            st.markdown("Detailed financial statement including Base Billing, AIT, GST, Previous OS, Payment Received, and Total Payable.")
             
             st.markdown("<br>", unsafe_allow_html=True)
             
-            billing_data = []
+            billing_records = []
             for m_name, m_data in st.session_state.user_wallets.items():
-                billing_data.append({
-                    "Billing Period": datetime.now().strftime("%B %Y"),
-                    "Customer ID": m_data['customer_id'],
+                m_email = st.session_state.users_db[m_name]["email"]
+                base = m_data.get('base_billing', 10000.0)
+                ait = m_data.get('ait', 450.0)
+                gst = m_data.get('gst', 800.0)
+                prev_os = m_data.get('previous_os', 0.0)
+                paid = m_data.get('payment_received', 0.0)
+                
+                # Total Payable Calculation = (Base + AIT + GST + Previous OS) - Paid
+                total_payable = (base + ait + gst + prev_os) - paid
+                
+                billing_records.append({
                     "Customer Name": m_name,
-                    "Account Tier": m_data['tier'],
-                    "Daily Quota Limit": m_data['daily_limit'],
-                    "Total Scans Utilized": m_data['total_attempts'],
-                    "Estimated Savings (Rs.)": f"Rs. {m_data['saved_amount']:,}",
-                    "Billing Amount (Rs.)": f"Rs. {m_data['balance']:,.2f}",
-                    "Payment Status": m_data['status']
+                    "Package / Tier": m_data['tier'],
+                    "Customer ID": m_data['customer_id'],
+                    "Base Billing (Rs.)": base,
+                    "AIT (Rs.)": ait,
+                    "GST (Rs.)": gst,
+                    "Payable (Rs.)": base + ait + gst,
+                    "Previous OS (Rs.)": prev_os,
+                    "Payment Received (Rs.)": paid,
+                    "Total Payable (Rs.)": total_payable,
+                    "Email ID": m_email,
+                    "Bill Sent Date": m_data.get('bill_sent_date', '2026-10-01')
                 })
             
-            df_billing = pd.DataFrame(billing_data)
-            st.dataframe(df_billing, use_container_width=True)
+            df_comp_billing = pd.DataFrame(billing_records)
+            st.dataframe(df_comp_billing, use_container_width=True)
             
             st.markdown("<br>", unsafe_allow_html=True)
-            csv_billing = df_billing.to_csv(index=False).encode('utf-8')
+            csv_comp = df_comp_billing.to_csv(index=False).encode('utf-8')
             st.download_button(
-                label="📥 Download Billing Report (Excel/CSV format)",
-                data=csv_billing,
-                file_name=f"COD_Shield_Billing_Report_{datetime.now().strftime('%Y%m%d')}.csv",
+                label="📥 Download Comprehensive Billing Report (Excel/CSV format)",
+                data=csv_comp,
+                file_name=f"COD_Shield_Comprehensive_Billing_{datetime.now().strftime('%Y%m%d')}.csv",
                 mime="text/csv",
                 type="primary",
                 use_container_width=True
@@ -461,19 +462,25 @@ else:
                     
                     st.markdown("<br>", unsafe_allow_html=True)
                     
+                    base = m_info.get('base_billing', 10000.0)
+                    ait = m_info.get('ait', 450.0)
+                    gst = m_info.get('gst', 800.0)
+                    total_p = base + ait + gst
+
                     inv_items = pd.DataFrame([
-                        {"Description": f"Monthly Subscription & Quota ({m_info['tier']})", "Qty": 1, "Rate (Rs.)": m_info['balance'] * 0.8, "Amount (Rs.)": m_info['balance'] * 0.8},
-                        {"Description": "Additional Risk Screening Scans", "Qty": m_info['total_attempts'], "Rate (Rs.)": 15, "Amount (Rs.)": m_info['balance'] * 0.2}
+                        {"Description": f"Subscription Base Billing ({m_info['tier']})", "Amount (Rs.)": base},
+                        {"Description": "AIT (Advance Income Tax)", "Amount (Rs.)": ait},
+                        {"Description": "GST (General Sales Tax)", "Amount (Rs.)": gst}
                     ])
                     st.dataframe(inv_items, use_container_width=True)
                     
-                    st.markdown(f"<div style='text-align: right;'><h4>Total Payable Amount: Rs. {m_info['balance']:,.2f}</h4></div>", unsafe_allow_html=True)
+                    st.markdown(f"<div style='text-align: right;'><h4>Total Net Payable: Rs. {total_p:,.2f}</h4></div>", unsafe_allow_html=True)
                     st.markdown("---")
-                    st.markdown("*Note: Verified billing statement generated via COD Shield Enterprise Gateway.*")
+                    st.markdown("*Note: Verified accounting statement generated via COD Shield Enterprise Gateway.*")
 
                 b_col1, b_col2 = st.columns(2)
                 with b_col1:
-                    invoice_text = f"COD Shield Invoice: {invoice_no}\nMerchant: {selected_merchant}\nTotal Amount: Rs. {m_info['balance']:,.2f}\nStatus: {m_info['status']}"
+                    invoice_text = f"COD Shield Invoice: {invoice_no}\nMerchant: {selected_merchant}\nTotal Payable: Rs. {total_p:,.2f}\nStatus: {m_info['status']}"
                     st.download_button(
                         label="📄 Download Invoice PDF",
                         data=invoice_text,
@@ -673,7 +680,7 @@ else:
             with w2:
                 with st.container(border=True):
                     st.markdown("### Request Limit Enhancement")
-                    st.markdown("Need a higher tier or increased daily limit? Request an upgrade directly from Admin. Muiz Aziz")
+                    st.markdown("Need a higher tier or increased daily limit? Request an upgrade directly from Admin.")
                     if st.button("Request Limit Upgrade", type="primary"):
                         st.session_state.audit_logs.insert(0, {
                             "Date": datetime.now().strftime("%Y-%m-%d"),
