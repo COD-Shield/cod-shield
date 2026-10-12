@@ -112,7 +112,6 @@ else:
         with c_chart1:
             with st.container(border=True):
                 st.markdown("#### Risk Distribution Breakdown")
-                # Interactive bar chart representation of risk statuses
                 chart_data = pd.DataFrame({
                     'Risk Level': ['Low Risk', 'Medium Risk', 'High Risk'],
                     'Count': [145, 42, 31]
@@ -148,7 +147,6 @@ else:
                         "0300-7654321": {"name": "Usman Ahmed", "city": "Karachi", "risk": "High Risk", "returns": 12, "delivered": 5},
                     }
                     
-                    # Log activity
                     st.session_state.activity_logs.insert(0, {"Time": datetime.now().strftime("%I:%M %p"), "User": current_usr, "Type": "Single Check", "Result": "Checked"})
 
                     if search_phone in mock_db:
@@ -211,4 +209,5 @@ else:
                             st.warning("🛡️ **Anti-Scraping Protection Active:** Bulk raw database downloads remain disabled.")
                             st.rerun()
 
-                except
+                except Exception as e:
+                    st.error(f"❌ Error reading file: {e}")
