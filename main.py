@@ -32,6 +32,16 @@ if 'user_wallets' not in st.session_state:
         "merchant_sara": {"daily_limit": 500, "used_today": 120, "balance": 18000.0, "total_attempts": 650, "saved_amount": 142000, "tier": "Gold 🥇"}
     }
 
+# Comprehensive Audit & System Activity Logs Database
+if 'audit_logs' not in st.session_state:
+    st.session_state.audit_logs = [
+        {"Date": "2026-10-12", "Customer_ID": "MERCH_01", "Customer_Name": "merchant_ali", "Action": "Network-wide Audit / Risk Screen", "Details": "Phone 03001234567 checked - HIGH Risk"},
+        {"Date": "2026-10-12", "Customer_ID": "MERCH_02", "Customer_Name": "merchant_sara", "Action": "Dynamic Quota & Limit Enhancement", "Details": "Limit increased from 300 to 500"},
+        {"Date": "2026-10-11", "Customer_ID": "MERCH_03", "Customer_Name": "merchant_hamza", "Action": "Merchant Onboarding & Account Creation", "Details": "New Bronze account created"},
+        {"Date": "2026-10-10", "Customer_ID": "MERCH_04", "Customer_Name": "merchant_bad", "Action": "Account Deletion & Suspension", "Details": "Suspended due to policy violation"},
+        {"Date": "2026-10-09", "Customer_ID": "MERCH_01", "Customer_Name": "merchant_ali", "Action": "Tier & Wallet Overview", "Details": "Wallet topped up by Rs. 20,000"}
+    ]
+
 # Mock Database for Phone Lookups
 if 'lookup_db' not in st.session_state:
     st.session_state.lookup_db = {
@@ -216,7 +226,7 @@ else:
             st.markdown("### 👑 ADMIN CONTROL PANEL")
             st.markdown(f"<span style='color: #4b5563; font-size: 12px;'>Logged in as: <b>ADMIN</b></span>", unsafe_allow_html=True)
             st.markdown("---")
-            admin_nav = st.radio("Admin Menu", ["Merchant Management", "Add New Merchant", "System Activity Logs"])
+            admin_nav = st.radio("Admin Menu", ["Merchant Management", "Add New Merchant", "System Activity Logs & Excel Report"])
             st.markdown("---")
             if st.button("Sign Out", use_container_width=True):
                 st.session_state.logged_in = False
@@ -242,7 +252,15 @@ else:
                         st.markdown("<br>", unsafe_allow_html=True)
                         if st.button("Update Limit", key=f"upd_{merchant_id}", use_container_width=True):
                             st.session_state.user_wallets[merchant_id]['daily_limit'] = new_limit
-                            st.success("Limit updated!")
+                            # Log action
+                            st.session_state.audit_logs.insert(0, {
+                                "Date": datetime.now().strftime("%Y-%m-%d"),
+                                "Customer_ID": f"ID_{merchant_id}",
+                                "Customer_Name": merchant_id,
+                                "Action": "Dynamic Quota & Limit Enhancement",
+                                "Details": f"Limit updated to {new_limit}"
+                            })
+                            st.success("Limit updated & logged!")
                             st.rerun()
                     with col_m4:
                         st.markdown("<br>", unsafe_allow_html=True)
@@ -251,17 +269,31 @@ else:
                             if m_status == "Active":
                                 if st.button("Disable", key=f"dis_{merchant_id}"):
                                     st.session_state.users_db[merchant_id]["status"] = "Disabled"
+                                    st.session_state.audit_logs.insert(0, {
+                                        "Date": datetime.now().strftime("%Y-%m-%d"),
+                                        "Customer_ID": f"ID_{merchant_id}",
+                                        "Customer_Name": merchant_id,
+                                        "Action": "Account Deletion & Suspension",
+                                        "Details": "Account disabled by admin"
+                                    })
                                     st.rerun()
                             else:
                                 if st.button("Enable", key=f"enb_{merchant_id}"):
                                     st.session_state.users_db[merchant_id]["status"] = "Active"
                                     st.rerun()
                         with c_btn2:
-                            pass # spacing
+                            pass
                         with c_btn3:
                             if st.button("Delete", key=f"del_{merchant_id}", type="primary"):
                                 del st.session_state.users_db[merchant_id]
                                 del st.session_state.user_wallets[merchant_id]
+                                st.session_state.audit_logs.insert(0, {
+                                    "Date": datetime.now().strftime("%Y-%m-%d"),
+                                    "Customer_ID": f"ID_{merchant_id}",
+                                    "Customer_Name": merchant_id,
+                                    "Action": "Account Deletion & Suspension",
+                                    "Details": "Account permanently deleted"
+                                })
                                 st.success("Merchant deleted successfully!")
                                 st.rerun()
 
@@ -284,15 +316,48 @@ else:
                     else:
                         st.session_state.users_db[new_m_user] = {"password": new_m_pass, "role": "Customer", "status": "Active"}
                         st.session_state.user_wallets[new_m_user] = {"daily_limit": new_m_limit, "used_today": 0, "balance": 10000.0, "total_attempts": 5, "saved_amount": 1500, "tier": "Bronze 🥉"}
-                        st.success(f"Merchant `{new_m_user}` created successfully!")
+                        
+                        # Log Onboarding
+                        st.session_state.audit_logs.insert(0, {
+                            "Date": datetime.now().strftime("%Y-%m-%d"),
+                            "Customer_ID": f"ID_{new_m_user}",
+                            "Customer_Name": new_m_user,
+                            "Action": "Merchant Onboarding & Account Creation",
+                            "Details": f"New merchant onboarded with limit {new_m_limit}"
+                        })
+                        st.success(f"Merchant `{new_m_user}` created & logged successfully!")
 
-        elif admin_nav == "System Activity Logs":
-            st.markdown("## 📊 System Activity & Audit Logs")
-            st.markdown("Recent screening attempts across the network.")
-            st.dataframe(pd.DataFrame([
-                {"Time": "2026-10-12 20:15", "Merchant": "merchant_ali", "Phone": "03001234567", "Risk": "HIGH"},
-                {"Time": "2026-10-12 19:42", "Merchant": "merchant_sara", "Phone": "03219876543", "Risk": "LOW"}
-            ]), use_container_width=True)
+        elif admin_nav == "System Activity Logs & Excel Report":
+            st.markdown("## 📊 System Activity Logs & Excel Reporting")
+            st.markdown("Filter network activities by date range and export complete audit reports to Excel.")
+            
+            st.markdown("<br>", unsafe_allow_html=True)
+            
+            # Date Selection Window & Filters
+            f_col1, f_col2 = st.columns(2)
+            with f_col1:
+                start_date = st.date_input("Start Date", value=datetime.strptime("2026-10-01", "%Y-%m-%d").date())
+            with f_col2:
+                end_date = st.date_input("End Date", value=datetime.now().date())
+
+            df_logs = pd.DataFrame(st.session_state.audit_logs)
+            
+            # Display interactive table
+            st.markdown("<br>", unsafe_allow_html=True)
+            st.dataframe(df_logs, use_container_width=True)
+
+            st.markdown("<br>", unsafe_allow_html=True)
+            
+            # Excel Export Button Simulation using CSV/Excel download
+            csv_data = df_logs.to_csv(index=False).encode('utf-8')
+            st.download_button(
+                label="📥 Download Complete Audit Report (Excel/CSV format)",
+                data=csv_data,
+                file_name=f"COD_Shield_Audit_Report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+                mime="text/csv",
+                type="primary",
+                use_container_width=True
+            )
 
     # ==================== CUSTOMER PORTAL ====================
     else:
@@ -382,6 +447,15 @@ else:
                         "risk": "UNKNOWN", "score": "15%", "total": 2, "delivered": 1, "returned": 1, "comment": "New buyer with limited historical footprint. Proceed with standard verification."
                     })
 
+                    # Log lookup in audit logs
+                    st.session_state.audit_logs.insert(0, {
+                        "Date": datetime.now().strftime("%Y-%m-%d"),
+                        "Customer_ID": f"ID_{curr_user}",
+                        "Customer_Name": curr_user,
+                        "Action": "Network-wide Audit & Activity Logs",
+                        "Details": f"Single lookup for {search_query} - Result: {result['risk']}"
+                    })
+
                     st.markdown("<br>", unsafe_allow_html=True)
                     st.markdown("### 📊 Risk Screening Result")
 
@@ -416,6 +490,13 @@ else:
                 st.success(f"Successfully uploaded {len(df_upload)} records for screening!")
                 st.dataframe(df_upload.head(), use_container_width=True)
                 if st.button("Run Bulk Risk Screening", type="primary"):
+                    st.session_state.audit_logs.insert(0, {
+                        "Date": datetime.now().strftime("%Y-%m-%d"),
+                        "Customer_ID": f"ID_{curr_user}",
+                        "Customer_Name": curr_user,
+                        "Action": "Network-wide Audit & Activity Logs",
+                        "Details": f"Bulk CSV screening executed for {len(df_upload)} rows"
+                    })
                     st.balloons()
                     st.info("Bulk scanning simulation complete: 85% safe orders identified for dispatch.")
 
@@ -424,22 +505,4 @@ else:
             st.markdown(f"Your Account Classification: **{wallet['tier']}**")
             
             st.markdown("<br>", unsafe_allow_html=True)
-            w1, w2 = st.columns(2)
-            with w1:
-                with st.container(border=True):
-                    st.markdown("### Account Details")
-                    st.markdown(f"<h1 style='color: #16a34a;'>Rs. {wallet['balance']:,.2f}</h1>", unsafe_allow_html=True)
-                    st.markdown(f"**Daily Screening Limit:** {wallet['daily_limit']} Scans")
-                    st.markdown(f"**Used Today:** {wallet['used_today']} Scans")
-            with w2:
-                with st.container(border=True):
-                    st.markdown("### Request Limit Enhancement")
-                    st.markdown("Need a higher tier or increased daily limit? Request an upgrade directly from Admin.")
-                    if st.button("Request Limit Upgrade", type="primary"):
-                        st.success("Upgrade request sent to Admin successfully!")
-
-    st.markdown(f"""
-        <div class="footer-box">
-            <b>© {current_year} COD Shield. All rights reserved.</b> &bull; Pre-dispatch Risk Intelligence Workspace.
-        </div>
-    """, unsafe_allow_html=True)
+            w
