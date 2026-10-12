@@ -119,12 +119,12 @@ st.markdown(hide_sidebar_css, unsafe_allow_html=True)
 current_year = datetime.now().year
 
 if not st.session_state.logged_in:
-    # Top Navigation Bar with Language Toggle
-    col_nav1, col_nav2, col_nav3 = st.columns([3, 1.2, 0.8])
+    # Top Navigation Bar with Trilingual Toggle
+    col_nav1, col_nav2, col_nav3 = st.columns([2.8, 1.4, 0.8])
     with col_nav1:
-        st.markdown("**🛡️ COD SHIELD** &nbsp;<span style='color: #4b5563; font-size: 13px;'>— <b>We Protect your margins to avoid BLIND COD shipping.</b></span>", unsafe_allow_html=True)
+        st.markdown("**🛡️ COD SHIELD** &nbsp;<span style='color: #4b5563; font-size: 12px;'>— <b>We Protect your margins to avoid BLIND COD shipping.</b></span>", unsafe_allow_html=True)
     with col_nav2:
-        selected_lang = st.selectbox("Language / زبان", ["English", "اردو"], index=0 if st.session_state.lang=="English" else 1, label_visibility="collapsed")
+        selected_lang = st.selectbox("Language / زبان / لغة", ["English", "اردو", "العربية"], index=["English", "اردو", "العربية"].index(st.session_state.lang), label_visibility="collapsed")
         if selected_lang != st.session_state.lang:
             st.session_state.lang = selected_lang
             st.rerun()
@@ -171,7 +171,7 @@ if not st.session_state.logged_in:
                 <span style="font-size: 13px; color: #4b5563;">Bubble wrap, custom boxes, tape, and employee man-hours are squandered on dead-end orders.</span>
             </div>
             """, unsafe_allow_html=True)
-        else:
+        elif st.session_state.lang == "اردو":
             st.markdown('<p class="exec-heading" style="direction: rtl; text-align: right;">خلاصہ اور رسک انٹیلی جنس</p>', unsafe_allow_html=True)
             st.markdown(
                 '<p class="exec-sub" style="direction: rtl; text-align: right;">پاکستان اور جنوبی ایشیا میں ای کامرس کا 85 فیصد سے زائد کاروبار کیش آن ڈلیوری (COD) پر ہوتا ہے۔ لیکن اندھا دھند پارسل بھیجنے (Blind Shipping) کی وجہ سے بار بار پارسل واپس آنے سے مرچنٹ کو شدید مالی نقصان اٹھانا پڑتا ہے۔</p>',
@@ -194,6 +194,32 @@ if not st.session_state.logged_in:
             <div class="problem-box" style="direction: rtl; text-align: right;">
                 <b>👩‍🏭 برباد لیبر اور پیکنگ</b><br>
                 <span style="font-size: 13px; color: #4b5563;">ببل ریپ، ڈبے، ٹیپ اور ملازمین کا وقت ان آرڈرز پر ضائع ہوتا ہے جو کبھی ڈلیور نہیں ہوتے۔</span>
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            # Arabic Translation
+            st.markdown('<p class="exec-heading" style="direction: rtl; text-align: right;">الملخص التنفيذي وذكاء المخاطر</p>', unsafe_allow_html=True)
+            st.markdown(
+                '<p class="exec-sub" style="direction: rtl; text-align: right;">تمثل الدفع عند الاستلام نسبة كبيرة من المعاملات التجارية. ومع ذلك، فإن العملاء المتسببين في الارتجاع المتكرر والطلبات الوهمية تسبب خسائر مالية جسيمة. منصة COD Shield مصممة للقضاء على الشحن الأعمى وحماية هوامش أرباح التجار.</p>',
+                unsafe_allow_html=True
+            )
+            st.markdown("<h4 style='direction: rtl; text-align: right;'>🚨 المشكلة الأساسية: أين يخسر التجار أموالهم؟</h4>", unsafe_allow_html=True)
+            st.markdown("""
+            <div class="problem-box" style="direction: rtl; text-align: right;">
+                <b>📦 تلف المخزون والعبوات</b><br>
+                <span style="font-size: 13px; color: #4b5563;">تودع المرتجعات غالباً بعبوات ممزقة وبضائع غير صالحة لإعادة البيع.</span>
+            </div>
+            """, unsafe_allow_html=True)
+            st.markdown("""
+            <div class="problem-box" style="direction: rtl; text-align: right;">
+                <b>💸 استنزاف رسوم الشحن ذات الاتجاهين</b><br>
+                <span style="font-size: 13px; color: #4b5563;">يدفع التجار رسوم شحن مضاعفة (إرسال + إرجاع) لكل تسليم فاشل.</span>
+            </div>
+            """, unsafe_allow_html=True)
+            st.markdown("""
+            <div class="problem-box" style="direction: rtl; text-align: right;">
+                <b>👩‍🏭 هدر العمالة والتكاليف العامة</b><br>
+                <span style="font-size: 13px; color: #4b5563;">يتم إهدار مواد التغليف ووقت الموظفين على طلبات وهمية لن يتم تسليمها أبداً.</span>
             </div>
             """, unsafe_allow_html=True)
 
