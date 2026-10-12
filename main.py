@@ -1,30 +1,38 @@
 import streamlit as st
 import pandas as pd
 
-# Page Config
 st.set_page_config(
-    page_title="COD Shield Portal",
+    page_title="COD Risk Assessment Portal",
     page_icon="🛡️",
     layout="wide"
 )
 
-# Initialize Session State for mock data if missing
-if 'network_reports' not in st.session_state:
-    st.session_state.network_reports = [
-        {"phone": "03001234567", "outcome": "delivered", "date": "2026-10-12"},
-        {"phone": "03219876543", "outcome": "refused", "date": "2026-10-11"}
-    ]
+if 'logged_in' not in st.session_state:
+    st.session_state.logged_in = False
+if 'current_user' not in st.session_state:
+    st.session_state.current_user = ""
+if 'user_role' not in st.session_state:
+    st.session_state.user_role = ""
 
-# Exact Replit Warm Color Scheme CSS
+if 'users_db' not in st.session_state:
+    st.session_state.users_db = {
+        "admin": {"password": "admin123", "role": "Administrator"},
+        "operator": {"password": "pass123", "role": "Operator"}
+    }
+
+if 'user_wallets' not in st.session_state:
+    st.session_state.user_wallets = {
+        "admin": {"daily_limit": 500, "used_today": 42, "balance": 7500.0, "total_attempts": 320},
+        "operator": {"daily_limit": 50, "used_today": 18, "balance": 450.0, "total_attempts": 85}
+    }
+
+# Consistent Warm Paper Theme CSS
 st.markdown("""
     <style>
-    /* Global App Background - Warm Paper Tone */
     .stApp {
         background-color: #f7f5f0 !important;
         color: #292524 !important;
     }
-    
-    /* Top Header Badge */
     .top-badge {
         background-color: #143825;
         color: #4ade80;
@@ -32,137 +40,79 @@ st.markdown("""
         border-radius: 6px;
         font-size: 12px;
         font-weight: 600;
-        letter-spacing: 0.05em;
     }
-
-    /* Hero Typography */
     .hero-title {
-        font-size: 42px;
+        font-size: 36px;
         font-weight: 800;
         color: #1c1917;
         letter-spacing: -0.03em;
-        margin-bottom: 0px;
     }
-    .hero-subtitle {
-        font-size: 18px;
-        color: #57534e;
-        margin-top: 5px;
-    }
-
-    /* Section Headers */
-    .section-header {
-        font-size: 13px;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        color: #78716c;
-        font-weight: 700;
-        border-bottom: 1px solid #e7e5e4;
-        padding-bottom: 8px;
-        margin-top: 35px;
-        margin-bottom: 20px;
-    }
-
-    /* Streamlit Containers styling to match Replit Cards */
     div[data-testid="stVerticalBlock"] > div[data-testid="stContainer"] {
         background-color: #ffffff !important;
         border: 1px solid #e7e5e4 !important;
         border-radius: 12px !important;
-        padding: 5px !important;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        padding: 10px !important;
     }
     </style>
 """, unsafe_allow_html=True)
 
-# Top Bar Header
-col_h1, col_h2 = st.columns([4, 1])
-with col_h1:
-    st.markdown("**🛡️ COD Shield** &nbsp; <span style='color: #78716c; font-size: 13px;'>Shared trust network</span>", unsafe_allow_html=True)
-with col_h2:
-    st.markdown("<div style='text-align: right;'><span class='top-badge'>● NETWORK LIVE</span></div>", unsafe_allow_html=True)
-
-st.markdown("<br>", unsafe_allow_html=True)
-
-# Hero Section
-st.markdown('<p class="hero-title">Better decisions, fewer returns.</p>', unsafe_allow_html=True)
-st.markdown('<p class="hero-subtitle">Check every COD order against shared delivery history.</p>', unsafe_allow_html=True)
-
-st.markdown("<br>", unsafe_allow_html=True)
-
-# Section 1: Network Overview
-st.markdown('<div class="section-header">01 / Network overview</div>', unsafe_allow_html=True)
-
-total_checked = len(st.session_state.network_reports) * 14 + 128
-col_m1, col_m2, col_m3 = st.columns(3)
-with col_m1:
-    with st.container(border=True):
-        st.markdown("<p style='color: #78716c; font-size: 13px; margin-bottom:5px;'>Total Shared Records</p>", unsafe_allow_html=True)
-        st.markdown(f"<h3 style='margin:0; color:#1c1917;'>{total_checked}</h3>", unsafe_allow_html=True)
-with col_m2:
-    with st.container(border=True):
-        st.markdown("<p style='color: #78716c; font-size: 13px; margin-bottom:5px;'>Network Uptime</p>", unsafe_allow_html=True)
-        st.markdown("<h3 style='margin:0; color:#1c1917;'>99.99%</h3>", unsafe_allow_html=True)
-with col_m3:
-    with st.container(border=True):
-        st.markdown("<p style='color: #78716c; font-size: 13px; margin-bottom:5px;'>Shield Status</p>", unsafe_allow_html=True)
-        st.markdown("<h3 style='margin:0; color:#15803d;'>🟢 Active</h3>", unsafe_allow_html=True)
-
-# Section 2: Before You Decide (Single Check & Report)
-st.markdown('<div class="section-header">02 / Before you decide</div>', unsafe_allow_html=True)
-
-col_chk, col_rep = st.columns(2)
-
-with col_chk:
-    with st.container(border=True):
-        st.markdown("#### Check customer risk")
-        st.markdown("<p style='color: #78716c; font-size: 13px;'>Review previous COD outcomes</p>", unsafe_allow_html=True)
-        
-        phone_check = st.text_input("Customer phone number", placeholder="03XX XXXXXXX", key="chk_phone")
-        
-        if st.button("Search", type="primary", use_container_width=True):
-            if phone_check:
-                found = next((r for r in st.session_state.network_reports if r['phone'] == phone_check), None)
-                if found:
-                    if found['outcome'] == 'delivered':
-                        st.markdown("<div style='background:#ecfdf5; border:1px solid #10b981; padding:12px; border-radius:8px; color:#065f46; margin-top:10px;'><b>GREEN: Low Risk</b><br>Customer has positive delivery history.</div>", unsafe_allow_html=True)
-                    else:
-                        st.markdown("<div style='background:#fef2f2; border:1px solid #ef4444; padding:12px; border-radius:8px; color:#991b1b; margin-top:10px;'><b>RED: High Risk / Refusal History</b><br>Reported as refused/returned previously.</div>", unsafe_allow_html=True)
+if not st.session_state.logged_in:
+    st.markdown("<br><br>", unsafe_allow_html=True)
+    c1, c2, c3 = st.columns([1, 1.2, 1])
+    with c2:
+        with st.container(border=True):
+            st.markdown("<h3 style='text-align: center; color: #1c1917;'>🛡️ COD Shield Login</h3>", unsafe_allow_html=True)
+            username = st.text_input("Username")
+            password = st.text_input("Password", type="password")
+            
+            st.markdown("<br>", unsafe_allow_html=True)
+            if st.button("Secure Login", type="primary", use_container_width=True):
+                if username in st.session_state.users_db and st.session_state.users_db[username]["password"] == password:
+                    st.session_state.logged_in = True
+                    st.session_state.current_user = username
+                    st.session_state.user_role = st.session_state.users_db[username]["role"]
+                    st.rerun()
                 else:
-                    st.markdown("<div style='background:#f4f4f5; border:1px solid #d4d4d8; padding:12px; border-radius:8px; color:#27272a; margin-top:10px;'><b>GREEN: Low Risk</b><br>No negative delivery history found for this number.</div>", unsafe_allow_html=True)
-            else:
-                st.warning("Please enter a phone number.")
+                    st.error("Invalid credentials.")
+else:
+    curr_user = st.session_state.current_user
+    curr_role = st.session_state.user_role
+    wallet = st.session_state.user_wallets.get(curr_user, {"daily_limit": 50, "used_today": 0, "balance": 500.0, "total_attempts": 0})
+    remaining_quota = wallet['daily_limit'] - wallet['used_today']
 
-with col_rep:
-    with st.container(border=True):
-        st.markdown("#### Report a delivery outcome")
-        st.markdown("<p style='color: #78716c; font-size: 13px;'>Accurate reports make the network more useful</p>", unsafe_allow_html=True)
-        
-        phone_rep = st.text_input("Order phone number", placeholder="03XX XXXXXXX", key="rep_phone")
-        outcome = st.radio("What happened to the order?", ["Delivered", "Returned / Refused"], horizontal=True)
-        
-        if st.button("Submit report", use_container_width=True):
-            if phone_rep:
-                status_val = "delivered" if outcome == "Delivered" else "refused"
-                st.session_state.network_reports.append({"phone": phone_rep, "outcome": status_val, "date": "2026-10-12"})
-                st.success("✅ Report submitted successfully to the shared network!")
-            else:
-                st.warning("Please enter a phone number to report.")
+    # Header Bar
+    col_h1, col_h2 = st.columns([4, 1])
+    with col_h1:
+        st.markdown("**🛡️ COD Shield Portal** &nbsp; <span style='color: #78716c; font-size: 13px;'>Multi-Page Suite</span>", unsafe_allow_html=True)
+    with col_h2:
+        st.markdown(f"<div style='text-align: right;'><span class='top-badge'>{curr_user.upper()}</span></div>", unsafe_allow_html=True)
 
-# Section 3: Import a CSV sheet
-st.markdown('<div class="section-header">03 / Import a CSV sheet</div>', unsafe_allow_html=True)
-with st.container(border=True):
-    st.markdown("#### Bulk delivery reports")
-    st.markdown("<p style='color: #78716c; font-size: 13px;'>Upload a UTF-8 CSV with one order per row. Required columns: phone_number, outcome.</p>", unsafe_allow_html=True)
-    uploaded_file = st.file_uploader("Choose CSV file", type="csv")
-    if uploaded_file is not None:
-        df_csv = pd.read_csv(uploaded_file)
-        st.success(f"Successfully loaded {len(df_csv)} rows from CSV!")
-        st.dataframe(df_csv.head(3))
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown('<p class="hero-title">Operational Workspace Overview</p>', unsafe_allow_html=True)
+    st.markdown("<p style='color: #57534e;'>Aap left sidebar se apne alag-alag pages (Phases) select kar sakte hain.</p>", unsafe_allow_html=True)
 
-# Section 4: Recent reports
-st.markdown('<div class="section-header">04 / Recent reports</div>', unsafe_allow_html=True)
-with st.container(border=True):
-    if st.session_state.network_reports:
-        df_recent = pd.DataFrame(st.session_state.network_reports)
-        st.dataframe(df_recent, use_container_width=True)
-    else:
-        st.info("No recent reports available yet.")
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    # Metrics Grid
+    m1, m2, m3, m4 = st.columns(4)
+    with m1:
+        with st.container(border=True):
+            st.markdown("<p style='color:#78716c; font-size:12px; margin:0;'>TOTAL ATTEMPTS</p>", unsafe_allow_html=True)
+            st.markdown(f"<h3 style='margin:5px 0 0 0; color:#1c1917;'>{wallet['total_attempts']}</h3>", unsafe_allow_html=True)
+    with m2:
+        with st.container(border=True):
+            st.markdown("<p style='color:#78716c; font-size:12px; margin:0;'>QUOTA USED</p>", unsafe_allow_html=True)
+            st.markdown(f"<h3 style='margin:5px 0 0 0; color:#2563eb;'>{wallet['used_today']} / {wallet['daily_limit']}</h3>", unsafe_allow_html=True)
+    with m3:
+        with st.container(border=True):
+            st.markdown("<p style='color:#78716c; font-size:12px; margin:0;'>REMAINING</p>", unsafe_allow_html=True)
+            st.markdown(f"<h3 style='margin:5px 0 0 0; color:#16a34a;'>{max(remaining_quota, 0)}</h3>", unsafe_allow_html=True)
+    with m4:
+        with st.container(border=True):
+            st.markdown("<p style='color:#78716c; font-size:12px; margin:0;'>WALLET BALANCE</p>", unsafe_allow_html=True)
+            st.markdown(f"<h3 style='margin:5px 0 0 0; color:#0d9488;'>Rs. {wallet['balance']}</h3>", unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    if st.button("Sign Out", use_container_width=True):
+        st.session_state.logged_in = False
+        st.rerun()
