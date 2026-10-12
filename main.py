@@ -15,21 +15,27 @@ if 'network_reports' not in st.session_state:
         {"phone": "03219876543", "outcome": "refused", "date": "2026-10-11"}
     ]
 
-# Custom CSS matching the clean paper/minimal aesthetic
+# Exact Replit Warm Color Scheme CSS
 st.markdown("""
     <style>
+    /* Global App Background - Warm Paper Tone */
     .stApp {
-        background-color: #fcfbfa;
-        color: #1c1917;
+        background-color: #f7f5f0 !important;
+        color: #292524 !important;
     }
+    
+    /* Top Header Badge */
     .top-badge {
-        background-color: #0f291e;
+        background-color: #143825;
         color: #4ade80;
-        padding: 4px 10px;
+        padding: 5px 12px;
         border-radius: 6px;
         font-size: 12px;
         font-weight: 600;
+        letter-spacing: 0.05em;
     }
+
+    /* Hero Typography */
     .hero-title {
         font-size: 42px;
         font-weight: 800;
@@ -42,16 +48,27 @@ st.markdown("""
         color: #57534e;
         margin-top: 5px;
     }
+
+    /* Section Headers */
     .section-header {
-        font-size: 14px;
+        font-size: 13px;
         text-transform: uppercase;
         letter-spacing: 0.08em;
         color: #78716c;
         font-weight: 700;
         border-bottom: 1px solid #e7e5e4;
         padding-bottom: 8px;
-        margin-top: 30px;
+        margin-top: 35px;
         margin-bottom: 20px;
+    }
+
+    /* Streamlit Containers styling to match Replit Cards */
+    div[data-testid="stVerticalBlock"] > div[data-testid="stContainer"] {
+        background-color: #ffffff !important;
+        border: 1px solid #e7e5e4 !important;
+        border-radius: 12px !important;
+        padding: 5px !important;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.02);
     }
     </style>
 """, unsafe_allow_html=True)
@@ -78,16 +95,16 @@ total_checked = len(st.session_state.network_reports) * 14 + 128
 col_m1, col_m2, col_m3 = st.columns(3)
 with col_m1:
     with st.container(border=True):
-        st.markdown("**Total Shared Records**")
-        st.markdown(f"### {total_checked}")
+        st.markdown("<p style='color: #78716c; font-size: 13px; margin-bottom:5px;'>Total Shared Records</p>", unsafe_allow_html=True)
+        st.markdown(f"<h3 style='margin:0; color:#1c1917;'>{total_checked}</h3>", unsafe_allow_html=True)
 with col_m2:
     with st.container(border=True):
-        st.markdown("**Network Uptime**")
-        st.markdown("### 99.99%")
+        st.markdown("<p style='color: #78716c; font-size: 13px; margin-bottom:5px;'>Network Uptime</p>", unsafe_allow_html=True)
+        st.markdown("<h3 style='margin:0; color:#1c1917;'>99.99%</h3>", unsafe_allow_html=True)
 with col_m3:
     with st.container(border=True):
-        st.markdown("**Shield Status**")
-        st.markdown("### 🟢 Active")
+        st.markdown("<p style='color: #78716c; font-size: 13px; margin-bottom:5px;'>Shield Status</p>", unsafe_allow_html=True)
+        st.markdown("<h3 style='margin:0; color:#15803d;'>🟢 Active</h3>", unsafe_allow_html=True)
 
 # Section 2: Before You Decide (Single Check & Report)
 st.markdown('<div class="section-header">02 / Before you decide</div>', unsafe_allow_html=True)
@@ -103,15 +120,14 @@ with col_chk:
         
         if st.button("Search", type="primary", use_container_width=True):
             if phone_check:
-                # Search logic simulation
                 found = next((r for r in st.session_state.network_reports if r['phone'] == phone_check), None)
                 if found:
                     if found['outcome'] == 'delivered':
-                        st.markdown("<div style='background:#ecfdf5; border:1px solid #10b981; padding:12px; border-radius:8px; color:#065f46;'><b>GREEN: Low Risk</b><br>Customer has positive delivery history.</div>", unsafe_allow_html=True)
+                        st.markdown("<div style='background:#ecfdf5; border:1px solid #10b981; padding:12px; border-radius:8px; color:#065f46; margin-top:10px;'><b>GREEN: Low Risk</b><br>Customer has positive delivery history.</div>", unsafe_allow_html=True)
                     else:
-                        st.markdown("<div style='background:#fef2f2; border:1px solid #ef4444; padding:12px; border-radius:8px; color:#991b1b;'><b>RED: High Risk / Refusal History</b><br>Reported as refused/returned previously.</div>", unsafe_allow_html=True)
+                        st.markdown("<div style='background:#fef2f2; border:1px solid #ef4444; padding:12px; border-radius:8px; color:#991b1b; margin-top:10px;'><b>RED: High Risk / Refusal History</b><br>Reported as refused/returned previously.</div>", unsafe_allow_html=True)
                 else:
-                    st.markdown("<div style='background:#f4f4f5; border:1px solid #d4d4d8; padding:12px; border-radius:8px; color:#27272a;'><b>GREEN: Low Risk</b><br>No negative delivery history found for this number.</div>", unsafe_allow_html=True)
+                    st.markdown("<div style='background:#f4f4f5; border:1px solid #d4d4d8; padding:12px; border-radius:8px; color:#27272a; margin-top:10px;'><b>GREEN: Low Risk</b><br>No negative delivery history found for this number.</div>", unsafe_allow_html=True)
             else:
                 st.warning("Please enter a phone number.")
 
