@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+from datetime import datetime
 
 st.set_page_config(
     page_title="COD Shield | Risk Intelligence",
@@ -94,6 +95,15 @@ hide_sidebar_css = """
         font-size: 12px;
         font-weight: 600;
     }
+    .footer-box {
+        margin-top: 40px;
+        padding: 20px 0;
+        border-top: 1px solid #e2e8f0;
+        color: #6b7280;
+        font-size: 12px;
+        text-align: center;
+        line-height: 1.6;
+    }
 """
 
 if not st.session_state.logged_in:
@@ -105,6 +115,8 @@ if not st.session_state.logged_in:
 
 hide_sidebar_css += "</style>"
 st.markdown(hide_sidebar_css, unsafe_allow_html=True)
+
+current_year = datetime.now().year
 
 if not st.session_state.logged_in:
     # Top Navigation Bar with Language Toggle
@@ -204,6 +216,14 @@ if not st.session_state.logged_in:
                 else:
                     st.error("Invalid credentials.")
 
+    # Precise Footer with Auto-Updating Year
+    st.markdown(f"""
+        <div class="footer-box">
+            <b>© {current_year} COD Shield. All rights reserved.</b><br>
+            COD Shield provides pre-dispatch risk intelligence based on historical data. We do not guarantee 100% delivery success or replace direct buyer confirmation. Merchants retain sole discretion over order dispatch decisions.
+        </div>
+    """, unsafe_allow_html=True)
+
 else:
     # Logged-in Dashboard View
     curr_user = st.session_state.current_user
@@ -248,3 +268,10 @@ else:
     if st.button("Sign Out", use_container_width=True):
         st.session_state.logged_in = False
         st.rerun()
+
+    # Footer for Dashboard as well
+    st.markdown(f"""
+        <div class="footer-box">
+            <b>© {current_year} COD Shield. All rights reserved.</b> &bull; Pre-dispatch Risk Intelligence Workspace.
+        </div>
+    """, unsafe_allow_html=True)
