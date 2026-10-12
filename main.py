@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 
 st.set_page_config(
-    page_title="COD Shield | Ramp-Style Spend & Cost Protection",
+    page_title="COD Shield | Spend & Cost Protection",
     page_icon="🛡️",
     layout="wide"
 )
@@ -77,7 +77,7 @@ if not st.session_state.logged_in:
     with c2:
         with st.container(border=True):
             st.markdown("<h3 style='font-weight: 700; color: #0e3b2e;'>🛡️ COD Shield</h3>", unsafe_allow_html=True)
-            st.markdown("<p style='color: #4b5563; font-size: 13px;'>The corporate spend & courier savings platform</p>", unsafe_allow_html=True)
+            st.markdown("<p style='color: #4b5563; font-size: 13px;'>Protecting your margins, one delivery at a time.</p>", unsafe_allow_html=True)
             
             username = st.text_input("Username")
             password = st.text_input("Password", type="password")
@@ -100,22 +100,23 @@ else:
     # Top Navigation Bar
     col_h1, col_h2 = st.columns([4, 1])
     with col_h1:
-        st.markdown("**🛡️ COD SHIELD** &nbsp;<span style='color: #4b5563; font-size: 13px;'>— Built for Merchant Budget & Freight Control</span>", unsafe_allow_html=True)
+        st.markdown("**🛡️ COD SHIELD** &nbsp;<span style='color: #4b5563; font-size: 13px;'>— Protecting your margins, one delivery at a time.</span>", unsafe_allow_html=True)
     with col_h2:
         st.markdown(f"<div style='text-align: right;'><span class='status-badge'>● LIVE ({curr_user.upper()})</span></div>", unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # Ramp Style Hero Banner using Streamlit Native Elements to avoid markdown code rendering bug
+    # Ramp Style Hero Banner with the Tagline
     with st.container():
         st.markdown("""
 <div class="ramp-hero-banner">
 <h1 style='margin:0; font-size: 34px; font-weight: 700; letter-spacing: -0.02em; color: white;'>Control your COD spend. Stop courier waste.</h1>
 <p style='margin:10px 0 0 0; font-size: 16px; opacity: 0.9; color: white;'>Protect your gross margins by screening risky returners before dispatching packages and wasting two-way freight.</p>
+<p style='margin:15px 0 0 0; font-size: 14px; font-style: italic; color: #a3e635; font-weight: 600;'>✨ "Protecting your margins, one delivery at a time."</p>
 </div>
 """, unsafe_allow_html=True)
         
-        # Savings Counter Box using Streamlit metric/container styling
+        # Savings Counter Box
         c_box1, c_box2 = st.columns([1, 2])
         with c_box1:
             with st.container(border=True):
