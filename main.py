@@ -3,7 +3,7 @@ import pandas as pd
 
 # Page Configuration
 st.set_page_config(
-    page_title="COD Risk Assessment Portal",
+    page_title="COD Risk Portal",
     page_icon="🛡️",
     layout="wide"
 )
@@ -16,14 +16,12 @@ if 'current_user' not in st.session_state:
 if 'user_role' not in st.session_state:
     st.session_state.user_role = ""
 
-# Users database mock
 if 'users_db' not in st.session_state:
     st.session_state.users_db = {
         "admin": {"password": "admin123", "role": "Administrator"},
         "operator": {"password": "pass123", "role": "Operator"}
     }
 
-# Wallet & Quotas mock data
 if 'user_wallets' not in st.session_state:
     st.session_state.user_wallets = {
         "admin": {"daily_limit": 500, "used_today": 42, "balance": 7500.0, "total_attempts": 320},
@@ -33,24 +31,27 @@ if 'user_wallets' not in st.session_state:
 # Login Gate
 if not st.session_state.logged_in:
     st.markdown("<br><br>", unsafe_allow_html=True)
-    c1, c2, c3 = st.columns([1, 1.3, 1])
+    c1, c2, c3 = st.columns([1, 1.2, 1])
     with c2:
         with st.container(border=True):
-            st.markdown("<h2 style='text-align: center; color: #ff2e63;'>🛡️ 3D Portal Login</h2>", unsafe_allow_html=True)
+            st.markdown("<h3 style='text-align: center; font-weight: 600; letter-spacing: -0.5px;'>🛡️ COD Shield Portal</h3>", unsafe_allow_html=True)
+            st.markdown("<p style='text-align: center; color: #888; font-size: 13px;'>Secure Authentication Gateway</p>", unsafe_allow_html=True)
+            
             username = st.text_input("Username")
             password = st.text_input("Password", type="password")
             
-            if st.button("🔑 Secure 3D Login", type="primary", use_container_width=True):
+            st.markdown("<br>", unsafe_allow_html=True)
+            if st.button("Sign In", type="primary", use_container_width=True):
                 if username in st.session_state.users_db and st.session_state.users_db[username]["password"] == password:
                     st.session_state.logged_in = True
                     st.session_state.current_user = username
                     st.session_state.user_role = st.session_state.users_db[username]["role"]
                     st.rerun()
                 else:
-                    st.error("❌ Incorrect username or password.")
+                    st.error("Invalid credentials.")
 else:
     # ==========================================
-    # ULTRA-COLORFUL & 3D GLASSMORPHISM UI
+    # LATEST TRENDY MINIMALIST ARTWORK DESIGN
     # ==========================================
     curr_user = st.session_state.current_user
     curr_role = st.session_state.user_role
@@ -58,132 +59,118 @@ else:
     
     remaining_quota = wallet['daily_limit'] - wallet['used_today']
 
-    # Custom 3D & Glowing Neon CSS Styling
+    # Trendy Modern Vercel/Linear Style CSS
     st.markdown("""
         <style>
         .stApp {
-            background: radial-gradient(circle at 50% 10%, #1a1a2e 0%, #16213e 50%, #0f0f1a 100%);
+            background-color: #09090b;
+            color: #fafafa;
         }
-        .hero-banner {
-            background: linear-gradient(135deg, #ff2e63 0%, #08d9d6 50%, #252a34 100%);
-            padding: 30px;
-            border-radius: 20px;
-            color: white;
-            text-align: center;
-            box-shadow: 0 15px 35px rgba(255, 46, 99, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            margin-bottom: 30px;
+        .trendy-banner {
+            background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 28px;
+            border-radius: 16px;
+            backdrop-filter: blur(20px);
+            margin-bottom: 24px;
         }
-        .card-3d-1 {
-            background: linear-gradient(145deg, #1f2937, #111827);
-            padding: 25px;
-            border-radius: 18px;
-            color: white;
-            box-shadow: 0 10px 25px rgba(255, 46, 99, 0.2), inset 0 1px 0 rgba(255,255,255,0.1);
-            border-top: 4px solid #ff2e63;
-            text-align: center;
+        .metric-tile {
+            background: #121215;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            transition: all 0.2s ease-in-out;
         }
-        .card-3d-2 {
-            background: linear-gradient(145deg, #1f2937, #111827);
-            padding: 25px;
-            border-radius: 18px;
-            color: white;
-            box-shadow: 0 10px 25px rgba(8, 217, 214, 0.2), inset 0 1px 0 rgba(255,255,255,0.1);
-            border-top: 4px solid #08d9d6;
-            text-align: center;
+        .metric-tile:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
         }
-        .card-3d-3 {
-            background: linear-gradient(145deg, #1f2937, #111827);
-            padding: 25px;
-            border-radius: 18px;
-            color: white;
-            box-shadow: 0 10px 25px rgba(255, 191, 0, 0.2), inset 0 1px 0 rgba(255,255,255,0.1);
-            border-top: 4px solid #ffbf00;
-            text-align: center;
+        .metric-title {
+            font-size: 13px;
+            font-weight: 500;
+            color: #a1a1aa;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin: 0;
         }
-        .card-3d-4 {
-            background: linear-gradient(145deg, #1f2937, #111827);
-            padding: 25px;
-            border-radius: 18px;
-            color: white;
-            box-shadow: 0 10px 25px rgba(0, 255, 135, 0.2), inset 0 1px 0 rgba(255,255,255,0.1);
-            border-top: 4px solid #00ff87;
-            text-align: center;
+        .metric-value {
+            font-size: 26px;
+            font-weight: 700;
+            color: #ffffff;
+            margin: 8px 0 0 0;
+            letter-spacing: -0.02em;
         }
-        .card-3d-1 h3, .card-3d-2 h3, .card-3d-3 h3, .card-3d-4 h3 { margin: 0; font-size: 15px; color: #a0aec0; text-transform: uppercase; letter-spacing: 1px; }
-        .card-3d-1 h2 { margin: 12px 0 0 0; font-size: 32px; color: #ff2e63; font-weight: 800; text-shadow: 0 0 10px rgba(255,46,99,0.5); }
-        .card-3d-2 h2 { margin: 12px 0 0 0; font-size: 32px; color: #08d9d6; font-weight: 800; text-shadow: 0 0 10px rgba(8,217,214,0.5); }
-        .card-3d-3 h2 { margin: 12px 0 0 0; font-size: 32px; color: #ffbf00; font-weight: 800; text-shadow: 0 0 10px rgba(255,191,0,0.5); }
-        .card-3d-4 h2 { margin: 12px 0 0 0; font-size: 32px; color: #00ff87; font-weight: 800; text-shadow: 0 0 10px rgba(0,255,135,0.5); }
         </style>
     """, unsafe_allow_html=True)
 
-    # 3D Glowing Header Banner
+    # Top Trendy Banner
     st.markdown(f"""
-        <div class="hero-banner">
-            <h1 style='margin:0; font-size: 32px; font-weight: 900; text-shadow: 2px 2px 4px rgba(0,0,0,0.4);'>🌟 COD Risk Intelligence 3D Portal</h1>
-            <p style='margin:8px 0 0 0; font-size: 16px; font-weight: 500;'>Active Operator: <b>{curr_user.upper()}</b> &nbsp;|&nbsp; Role Tier: <b>{curr_role}</b></p>
+        <div class="trendy-banner">
+            <h2 style='margin:0; font-size: 24px; font-weight: 600; letter-spacing: -0.03em;'>Risk Intelligence Workspace</h2>
+            <p style='margin:6px 0 0 0; color: #a1a1aa; font-size: 14px;'>Logged in as <span style='color: #fff; font-weight: 500;'>{curr_user}</span> &bull; Role: <span style='color: #38bdf8;'>{curr_role}</span></p>
         </div>
     """, unsafe_allow_html=True)
 
-    # 3D Colorful Metric Cards
-    st.markdown("### 🔥 Live 3D Performance Analytics")
+    # Modern Metric Cards Grid
+    st.markdown("### Overview")
     col1, col2, col3, col4 = st.columns(4)
 
     with col1:
         st.markdown(f"""
-            <div class="card-3d-1">
-                <h3>Total Attempts</h3>
-                <h2>{wallet['total_attempts']}</h2>
+            <div class="metric-tile">
+                <p class="metric-title">Total Attempts</p>
+                <p class="metric-value">{wallet['total_attempts']}</p>
             </div>
         """, unsafe_allow_html=True)
 
     with col2:
         st.markdown(f"""
-            <div class="card-3d-2">
-                <h3>Quota Used</h3>
-                <h2>{wallet['used_today']} / {wallet['daily_limit']}</h2>
+            <div class="metric-tile">
+                <p class="metric-title">Quota Used</p>
+                <p class="metric-value">{wallet['used_today']}<span style='font-size: 16px; color: #71717a;'>/{wallet['daily_limit']}</span></p>
             </div>
         """, unsafe_allow_html=True)
 
     with col3:
         st.markdown(f"""
-            <div class="card-3d-3">
-                <h3>Remaining Quota</h3>
-                <h2>{max(remaining_quota, 0)}</h2>
+            <div class="metric-tile">
+                <p class="metric-title">Remaining Quota</p>
+                <p class="metric-value">{max(remaining_quota, 0)}</p>
             </div>
         """, unsafe_allow_html=True)
 
     with col4:
         st.markdown(f"""
-            <div class="card-3d-4">
-                <h3>Wallet Balance</h3>
-                <h2>Rs. {wallet['balance']}</h2>
+            <div class="metric-tile">
+                <p class="metric-title">Wallet Balance</p>
+                <p class="metric-value" style='color: #4ade80;'>Rs. {wallet['balance']}</p>
             </div>
         """, unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # Visual Analytics & Navigation Box
-    c_left, c_right = st.columns([1.2, 1])
+    # Lower Section: Chart & Navigation Help
+    c_left, c_right = st.columns([1.3, 1])
 
     with c_left:
         with st.container(border=True):
-            st.markdown("#### 📊 Risk Distribution Spectrum")
-            chart_data = pd.DataFrame({
-                'Risk Category': ['Safe / Low Risk', 'Medium Risk', 'High Returners'],
-                'Share (%)': [72, 18, 10]
+            st.markdown("#### Risk Distribution Analytics")
+            chart_df = pd.DataFrame({
+                'Risk Level': ['Low Risk', 'Medium Risk', 'High Risk'],
+                'Share': [75, 15, 10]
             })
-            st.bar_chart(chart_data.set_index('Risk Category'))
+            st.bar_chart(chart_df.set_index('Risk Level'))
 
     with c_right:
         with st.container(border=True):
-            st.markdown("#### ⚡ Sidebar Multi-Page Navigation")
-            st.info("👈 **Left Sidebar** open karein aur apne alag-alag phases access karein:\n"
-                    "- **1_Single_Check:** Single phone/order verification.\n"
-                    "- **2_Bulk_Check:** Bulk upload & anti-scraping guard.\n"
-                    "- **3_Wallet_Admin:** Wallet monetization & user rights.")
+            st.markdown("#### Navigation Guide")
+            st.markdown("Use the **left sidebar** to access your structured modules:")
+            st.markdown("- **1_Single_Check**: Individual customer lookups.")
+            st.markdown("- **2_Bulk_Check**: Batch verification & anti-scraping shield.")
+            st.markdown("- **3_Wallet_Admin**: Billing, monetization, & controls.")
             
-            if st.button("🚪 Logout 3D Portal", use_container_width=True):
+            st.markdown("<br>", unsafe_allow_html=True)
+            if st.button("Sign Out", use_container_width=True):
                 st.session_state.logged_in = False
                 st.rerun()
