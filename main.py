@@ -43,7 +43,7 @@ if not st.session_state.logged_in:
     with c2:
         with st.container(border=True):
             st.markdown("<h2 style='text-align: center;'>🛡️ COD Risk Portal Login</h2>", unsafe_allow_html=True)
-            st.markdown("<p style='text-align: center; color: gray;'>Phase 3: Wallet & User Rights Management</p>", unsafe_allow_html=True)
+            st.markdown("<p style='text-align: center; color: gray;'>Phase 3: Role-Based Access Control</p>", unsafe_allow_html=True)
             
             username = st.text_input("Username")
             password = st.text_input("Password", type="password")
@@ -70,7 +70,7 @@ else:
     st.markdown(f"""
         <div style="background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%); padding: 22px; border-radius: 12px; color: white; text-align: center; margin-bottom: 25px;">
             <h1 style='margin:0; font-size: 26px;'>🛡️ COD Risk & Monetization Portal</h1>
-            <p style='margin:5px 0 0 0; font-size: 14px;'>Active User: <b>{current_usr}</b> ({st.session_state.user_role}) | Wallet & Rights Active</p>
+            <p style='margin:5px 0 0 0; font-size: 14px;'>Active User: <b>{current_usr}</b> ({st.session_state.user_role}) | Role-Based Rights Active</p>
         </div>
     """, unsafe_allow_html=True)
     
@@ -87,11 +87,12 @@ else:
         st.session_state.logged_in = False
         st.rerun()
 
-    # Tabs for Workflow (Admin gets User Creation tab)
+    # Tabs Configuration based on Roles
     if st.session_state.user_role == "Administrator":
-        tab1, tab2, tab3, tab4, tab5 = st.tabs(["📊 Interactive Analytics", "🔍 Single Check", "📁 Bulk Verification Shield", "⚙️ Audit Logs", "👥 User Management"])
+        tab1, tab2, tab3, tab4, tab5 = st.tabs(["📊 Interactive Analytics", "🔍 Single Check", "📁 Bulk Verification & Download", "⚙️ Audit Logs", "👥 User Management"])
     else:
-        tab1, tab2, tab3 = st.tabs(["📊 Interactive Analytics", "🔍 Single Check", "📁 Bulk Verification Shield"])
+        # Operators get Single Check and restricted/monitored bulk access depending on rights
+        tab1, tab2, tab3 = st.tabs(["📊 Interactive Analytics", "🔍 Single Check", "📁 Bulk Verification (Restricted)"])
 
     # --- TAB 1: INTERACTIVE ANALYTICS & CHARTS ---
     with tab1:
@@ -125,7 +126,7 @@ else:
                 log_preview_df = pd.DataFrame(st.session_state.audit_logs)[['Timestamp', 'User', 'Action', 'Cost']]
                 st.dataframe(log_preview_df, use_container_width=True, hide_index=True)
 
-    # --- TAB 2: SINGLE CHECK ---
+    # --- TAB 2: SINGLE CHECK (Available to all) ---
     with tab2:
         with st.container(border=True):
             st.markdown("### 🔍 Single Order Risk Check")
@@ -186,10 +187,12 @@ else:
             else:
                 st.warning("⚠️ Please enter a phone number.")
 
-    # --- TAB 3: BULK VERIFICATION SHIELD ---
+    # --- TAB 3: BULK VERIFICATION SHIELD (Role Managed) ---
     with tab3:
         with st.container(border=True):
-            st.markdown("### 📁 Bulk Data Verification & Monetization Shield")
+            st.markdown("### 📁 Bulk Data Verification & Anti-Scraping Shield")
+            st.markdown("Upload your order file for batch assessment. Raw database downloads remain strictly restricted.")
+            
             uploaded_file = st.file_uploader("Upload CSV or Excel file", type=["csv", "xlsx"])
 
             if uploaded_file is not None:
@@ -198,7 +201,7 @@ else:
                     total_rows = len(df)
                     st.info(f"📁 Total rows detected: **{total_rows}**")
                     
-                    if st.button("🔒 Run Paid & Protected Assessment", type="primary"):
+                    if st.button("🔒 Run Protected Bulk Assessment", type="primary"):
                         free_available = max(remaining_free, 0)
                         if total_rows <= free_available:
                             wallet['used_today'] += total_rows
@@ -227,14 +230,27 @@ else:
                         st.success(f"✅ Successfully processed {total_rows} records! Cost: {cost_label}")
                         
                         res_summary = [{"Row": i+1, "Assessed Status": "Low Risk" if i%2==0 else "High Risk"} for i in range(total_rows)]
-                        st.dataframe(pd.DataFrame(res_summary), use_container_width=True)
-                        st.warning("🛡️ **Anti-Scraping Active:** Raw database downloads are disabled.")
+                        res_df = pd.DataFrame(res_summary)
+                        st.dataframe(res_df, use_container_width=True)
+                        
+                        # Conditional Download Right: Only Admin or authorized roles can download summary, raw download blocked
+                        if st.session_state.user_role == "Administrator":
+                            st.download_button(
+                                label="📥 Download Assessment Summary Report",
+                                data=res_df.to_csv(index=False).encode('utf-8'),
+                                file_name='risk_assessment_summary.csv',
+                                mime='text/csv'
+                            )
+                        else:
+                            st.info("ℹ️ Bulk summary export is restricted for Operators. Contact Administrator for report downloads.")
+                        
+                        st.warning("🛡️ **Anti-Scraping Active:** Raw database downloads are permanently disabled.")
                         st.rerun()
 
                 except Exception as e:
                     st.error(f"❌ Error: {e}")
 
-    # --- TAB 4: ADMIN AUDIT LOGS ---
+    # --- TAB 4: ADMIN AUDIT LOGS (Admin Only) ---
     if st.session_state.user_role == "Administrator":
         with tab4:
             st.markdown("### ⚙️ System Audit Logs & Transaction History")
@@ -242,7 +258,7 @@ else:
             log_table = pd.DataFrame(st.session_state.audit_logs)
             st.dataframe(log_table, use_container_width=True, hide_index=True)
 
-        # --- TAB 5: USER CREATION & RIGHTS MANAGEMENT (ADMIN ONLY) ---
+        # --- TAB 5: USER CREATION & RIGHTS MANAGEMENT (Admin Only) ---
         with tab5:
             st.markdown("### 👥 Create New User & Assign Rights")
             st.markdown("Add new operators or administrators, set their passwords, initial wallet balance, and daily limits.")
@@ -255,3 +271,40 @@ else:
                 with col_u2:
                     new_role = st.selectbox("Assign Role (Rights)", ["Operator", "Administrator"])
                     init_balance = st.number_input("Initial Wallet Balance (PKR)", min_value=0.0, value=500.0, step=100.0)
+                
+                init_limit = st.slider("Daily Free Check Limit (CL)", min_value=10, max_value=500, value=50)
+                
+                st.markdown("<br>", unsafe_allow_html=True)
+                create_btn = st.form_submit_button("➕ Create User Profile", type="primary")
+                
+                if create_btn:
+                    if new_username and new_password:
+                        if new_username in st.session_state.users_db:
+                            st.error("❌ Username already exists! Please choose a different name.")
+                        else:
+                            st.session_state.users_db[new_username] = {
+                                "password": new_password,
+                                "role": new_role
+                            }
+                            st.session_state.user_wallets[new_username] = {
+                                "daily_limit": init_limit,
+                                "used_today": 0,
+                                "balance": init_balance,
+                                "charges_per_check": 10.0
+                            }
+                            st.success(f"✅ User '{new_username}' created successfully with role '{new_role}'!")
+                    else:
+                        st.warning("⚠️ Please provide both username and password.")
+
+            st.markdown("---")
+            st.markdown("#### 📋 Active System Users")
+            user_list_data = []
+            for u, info in st.session_state.users_db.items():
+                w_info = st.session_state.user_wallets.get(u, {"balance": 0, "daily_limit": 0})
+                user_list_data.append({
+                    "Username": u,
+                    "Role": info["role"],
+                    "Daily Quota": w_info["daily_limit"],
+                    "Wallet Balance (PKR)": w_info["balance"]
+                })
+            st.dataframe(pd.DataFrame(user_list_data), use_container_width=True, hide_index=True)
