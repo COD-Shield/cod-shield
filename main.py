@@ -1,213 +1,152 @@
 import streamlit as st
 import pandas as pd
 
-# Page Configuration
+# Page Config
 st.set_page_config(
-    page_title="COD Risk Intelligence | Stripe Style",
+    page_title="COD Shield Portal",
     page_icon="🛡️",
     layout="wide"
 )
 
-# Initialize Session States
-if 'logged_in' not in st.session_state:
-    st.session_state.logged_in = False
-if 'current_user' not in st.session_state:
-    st.session_state.current_user = ""
-if 'user_role' not in st.session_state:
-    st.session_state.user_role = ""
+# Initialize Session State for mock data if missing
+if 'network_reports' not in st.session_state:
+    st.session_state.network_reports = [
+        {"phone": "03001234567", "outcome": "delivered", "date": "2026-10-12"},
+        {"phone": "03219876543", "outcome": "refused", "date": "2026-10-11"}
+    ]
 
-if 'users_db' not in st.session_state:
-    st.session_state.users_db = {
-        "admin": {"password": "admin123", "role": "Administrator"},
-        "operator": {"password": "pass123", "role": "Operator"}
+# Custom CSS matching the clean paper/minimal aesthetic
+st.markdown("""
+    <style>
+    .stApp {
+        background-color: #fcfbfa;
+        color: #1c1917;
     }
-
-if 'user_wallets' not in st.session_state:
-    st.session_state.user_wallets = {
-        "admin": {"daily_limit": 500, "used_today": 42, "balance": 7500.0, "total_attempts": 320},
-        "operator": {"daily_limit": 50, "used_today": 18, "balance": 450.0, "total_attempts": 85}
+    .top-badge {
+        background-color: #0f291e;
+        color: #4ade80;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
     }
+    .hero-title {
+        font-size: 42px;
+        font-weight: 800;
+        color: #1c1917;
+        letter-spacing: -0.03em;
+        margin-bottom: 0px;
+    }
+    .hero-subtitle {
+        font-size: 18px;
+        color: #57534e;
+        margin-top: 5px;
+    }
+    .section-header {
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #78716c;
+        font-weight: 700;
+        border-bottom: 1px solid #e7e5e4;
+        padding-bottom: 8px;
+        margin-top: 30px;
+        margin-bottom: 20px;
+    }
+    </style>
+""", unsafe_allow_html=True)
 
-# Login Gate - Stripe Style Clean Glass Card
-if not st.session_state.logged_in:
-    st.markdown("""
-        <style>
-        .stApp {
-            background: linear-gradient(135deg, #0a2540 0%, #020617 100%);
-            color: #ffffff;
-        }
-        </style>
-    """, unsafe_allow_html=True)
-    
-    st.markdown("<br><br>", unsafe_allow_html=True)
-    c1, c2, c3 = st.columns([1, 1.2, 1])
-    with c2:
-        with st.container(border=True):
-            st.markdown("<h2 style='text-align: center; color: #635bff; font-weight: 800; letter-spacing: -0.5px;'>🛡️ Stripe-Grade Portal</h2>", unsafe_allow_html=True)
-            st.markdown("<p style='text-align: center; color: #94a3b8; font-size: 13px;'>Secure Financial Infrastructure Login</p>", unsafe_allow_html=True)
-            
-            username = st.text_input("Username")
-            password = st.text_input("Password", type="password")
-            
-            st.markdown("<br>", unsafe_allow_html=True)
-            if st.button("Sign in to Dashboard", type="primary", use_container_width=True):
-                if username in st.session_state.users_db and st.session_state.users_db[username]["password"] == password:
-                    st.session_state.logged_in = True
-                    st.session_state.current_user = username
-                    st.session_state.user_role = st.session_state.users_db[username]["role"]
-                    st.rerun()
+# Top Bar Header
+col_h1, col_h2 = st.columns([4, 1])
+with col_h1:
+    st.markdown("**🛡️ COD Shield** &nbsp; <span style='color: #78716c; font-size: 13px;'>Shared trust network</span>", unsafe_allow_html=True)
+with col_h2:
+    st.markdown("<div style='text-align: right;'><span class='top-badge'>● NETWORK LIVE</span></div>", unsafe_allow_html=True)
+
+st.markdown("<br>", unsafe_allow_html=True)
+
+# Hero Section
+st.markdown('<p class="hero-title">Better decisions, fewer returns.</p>', unsafe_allow_html=True)
+st.markdown('<p class="hero-subtitle">Check every COD order against shared delivery history.</p>', unsafe_allow_html=True)
+
+st.markdown("<br>", unsafe_allow_html=True)
+
+# Section 1: Network Overview
+st.markdown('<div class="section-header">01 / Network overview</div>', unsafe_allow_html=True)
+
+total_checked = len(st.session_state.network_reports) * 14 + 128
+col_m1, col_m2, col_m3 = st.columns(3)
+with col_m1:
+    with st.container(border=True):
+        st.markdown("**Total Shared Records**")
+        st.markdown(f"### {total_checked}")
+with col_m2:
+    with st.container(border=True):
+        st.markdown("**Network Uptime**")
+        st.markdown("### 99.99%")
+with col_m3:
+    with st.container(border=True):
+        st.markdown("**Shield Status**")
+        st.markdown("### 🟢 Active")
+
+# Section 2: Before You Decide (Single Check & Report)
+st.markdown('<div class="section-header">02 / Before you decide</div>', unsafe_allow_html=True)
+
+col_chk, col_rep = st.columns(2)
+
+with col_chk:
+    with st.container(border=True):
+        st.markdown("#### Check customer risk")
+        st.markdown("<p style='color: #78716c; font-size: 13px;'>Review previous COD outcomes</p>", unsafe_allow_html=True)
+        
+        phone_check = st.text_input("Customer phone number", placeholder="03XX XXXXXXX", key="chk_phone")
+        
+        if st.button("Search", type="primary", use_container_width=True):
+            if phone_check:
+                # Search logic simulation
+                found = next((r for r in st.session_state.network_reports if r['phone'] == phone_check), None)
+                if found:
+                    if found['outcome'] == 'delivered':
+                        st.markdown("<div style='background:#ecfdf5; border:1px solid #10b981; padding:12px; border-radius:8px; color:#065f46;'><b>GREEN: Low Risk</b><br>Customer has positive delivery history.</div>", unsafe_allow_html=True)
+                    else:
+                        st.markdown("<div style='background:#fef2f2; border:1px solid #ef4444; padding:12px; border-radius:8px; color:#991b1b;'><b>RED: High Risk / Refusal History</b><br>Reported as refused/returned previously.</div>", unsafe_allow_html=True)
                 else:
-                    st.error("Invalid credentials.")
-else:
-    # ==========================================
-    # STRIPE-INSPIRED MODERN FINTECH UI
-    # ==========================================
-    curr_user = st.session_state.current_user
-    curr_role = st.session_state.user_role
-    wallet = st.session_state.user_wallets.get(curr_user, {"daily_limit": 50, "used_today": 0, "balance": 500.0, "total_attempts": 0})
-    
-    remaining_quota = wallet['daily_limit'] - wallet['used_today']
+                    st.markdown("<div style='background:#f4f4f5; border:1px solid #d4d4d8; padding:12px; border-radius:8px; color:#27272a;'><b>GREEN: Low Risk</b><br>No negative delivery history found for this number.</div>", unsafe_allow_html=True)
+            else:
+                st.warning("Please enter a phone number.")
 
-    # Custom Stripe-Inspired CSS (Deep Navy, Indigo Glow, Smooth Radius)
-    st.markdown("""
-        <style>
-        .stApp {
-            background: linear-gradient(180deg, #0a2540 0%, #071728 50%, #020617 100%);
-            color: #e2e8f0;
-        }
-        .stripe-hero {
-            background: linear-gradient(135deg, #635bff 0%, #00d4ff 100%);
-            padding: 32px;
-            border-radius: 18px;
-            color: white;
-            box-shadow: 0 20px 40px rgba(99, 91, 255, 0.25);
-            margin-bottom: 25px;
-        }
-        .stripe-card {
-            background: rgba(15, 23, 42, 0.75);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-top: 4px solid #635bff;
-            padding: 24px;
-            border-radius: 14px;
-            backdrop-filter: blur(12px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-            text-align: left;
-        }
-        .stripe-card-alt {
-            background: rgba(15, 23, 42, 0.75);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-top: 4px solid #00d4ff;
-            padding: 24px;
-            border-radius: 14px;
-            backdrop-filter: blur(12px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-            text-align: left;
-        }
-        .stripe-card-warn {
-            background: rgba(15, 23, 42, 0.75);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-top: 4px solid #f59e0b;
-            padding: 24px;
-            border-radius: 14px;
-            backdrop-filter: blur(12px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-            text-align: left;
-        }
-        .stripe-card-success {
-            background: rgba(15, 23, 42, 0.75);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-top: 4px solid #10b981;
-            padding: 24px;
-            border-radius: 14px;
-            backdrop-filter: blur(12px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-            text-align: left;
-        }
-        .metric-title {
-            font-size: 13px;
-            font-weight: 600;
-            color: #94a3b8;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin: 0;
-        }
-        .metric-val {
-            font-size: 30px;
-            font-weight: 800;
-            color: #ffffff;
-            margin: 8px 0 0 0;
-            letter-spacing: -0.03em;
-        }
-        </style>
-    """, unsafe_allow_html=True)
+with col_rep:
+    with st.container(border=True):
+        st.markdown("#### Report a delivery outcome")
+        st.markdown("<p style='color: #78716c; font-size: 13px;'>Accurate reports make the network more useful</p>", unsafe_allow_html=True)
+        
+        phone_rep = st.text_input("Order phone number", placeholder="03XX XXXXXXX", key="rep_phone")
+        outcome = st.radio("What happened to the order?", ["Delivered", "Returned / Refused"], horizontal=True)
+        
+        if st.button("Submit report", use_container_width=True):
+            if phone_rep:
+                status_val = "delivered" if outcome == "Delivered" else "refused"
+                st.session_state.network_reports.append({"phone": phone_rep, "outcome": status_val, "date": "2026-10-12"})
+                st.success("✅ Report submitted successfully to the shared network!")
+            else:
+                st.warning("Please enter a phone number to report.")
 
-    # Hero Banner
-    st.markdown(f"""
-        <div class="stripe-hero">
-            <h1 style='margin:0; font-size: 28px; font-weight: 800; letter-spacing: -0.02em;'>Financial Risk Infrastructure</h1>
-            <p style='margin:8px 0 0 0; font-size: 15px; opacity: 0.9;'>Operator: <b style='color:#fff;'>{curr_user.upper()}</b> &bull; Access Profile: <b style='color:#fff;'>{curr_role}</b></p>
-        </div>
-    """, unsafe_allow_html=True)
+# Section 3: Import a CSV sheet
+st.markdown('<div class="section-header">03 / Import a CSV sheet</div>', unsafe_allow_html=True)
+with st.container(border=True):
+    st.markdown("#### Bulk delivery reports")
+    st.markdown("<p style='color: #78716c; font-size: 13px;'>Upload a UTF-8 CSV with one order per row. Required columns: phone_number, outcome.</p>", unsafe_allow_html=True)
+    uploaded_file = st.file_uploader("Choose CSV file", type="csv")
+    if uploaded_file is not None:
+        df_csv = pd.read_csv(uploaded_file)
+        st.success(f"Successfully loaded {len(df_csv)} rows from CSV!")
+        st.dataframe(df_csv.head(3))
 
-    # Metrics Grid (Stripe Fintech Style)
-    st.markdown("### 📊 Performance & Revenue Metrics")
-    col1, col2, col3, col4 = st.columns(4)
-
-    with col1:
-        st.markdown(f"""
-            <div class="stripe-card">
-                <p class="metric-title">Total Attempts</p>
-                <p class="metric-val" style="color: #818cf8;">{wallet['total_attempts']}</p>
-            </div>
-        """, unsafe_allow_html=True)
-
-    with col2:
-        st.markdown(f"""
-            <div class="stripe-card-alt">
-                <p class="metric-title">Quota Utilized</p>
-                <p class="metric-val" style="color: #38bdf8;">{wallet['used_today']} <span style="font-size:16px; color:#64748b;">/ {wallet['daily_limit']}</span></p>
-            </div>
-        """, unsafe_allow_html=True)
-
-    with col3:
-        st.markdown(f"""
-            <div class="stripe-card-warn">
-                <p class="metric-title">Remaining Quota</p>
-                <p class="metric-val" style="color: #fbbf24;">{max(remaining_quota, 0)}</p>
-            </div>
-        """, unsafe_allow_html=True)
-
-    with col4:
-        st.markdown(f"""
-            <div class="stripe-card-success">
-                <p class="metric-title">Wallet Balance</p>
-                <p class="metric-val" style="color: #34d399;">Rs. {wallet['balance']}</p>
-            </div>
-        """, unsafe_allow_html=True)
-
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    # Lower Section: Chart and Sidebar Navigation Guide
-    c_left, c_right = st.columns([1.3, 1])
-
-    with c_left:
-        with st.container(border=True):
-            st.markdown("#### Risk Analytics Distribution")
-            chart_df = pd.DataFrame({
-                'Risk Category': ['Low Risk / Verified', 'Medium Risk', 'High Returners'],
-                'Share (%)': [72, 18, 10]
-            })
-            st.bar_chart(chart_df.set_index('Risk Category'))
-
-    with c_right:
-        with st.container(border=True):
-            st.markdown("#### Multi-Page Modules")
-            st.info("👈 **Left Sidebar** open karein aur apne specific phases access karein:\n"
-                    "- **1_Single_Check**: Single customer lookup.\n"
-                    "- **2_Bulk_Check**: Batch verification & shielding.\n"
-                    "- **3_Wallet_Admin**: Billing & monetization.")
-            
-            st.markdown("<br>", unsafe_allow_html=True)
-            if st.button("Sign out securely", use_container_width=True):
-                st.session_state.logged_in = False
-                st.rerun()
+# Section 4: Recent reports
+st.markdown('<div class="section-header">04 / Recent reports</div>', unsafe_allow_html=True)
+with st.container(border=True):
+    if st.session_state.network_reports:
+        df_recent = pd.DataFrame(st.session_state.network_reports)
+        st.dataframe(df_recent, use_container_width=True)
+    else:
+        st.info("No recent reports available yet.")
