@@ -3,7 +3,7 @@ import pandas as pd
 
 # Page Configuration
 st.set_page_config(
-    page_title="COD Risk Portal",
+    page_title="COD Risk Intelligence | Stripe Style",
     page_icon="🛡️",
     layout="wide"
 )
@@ -28,28 +28,39 @@ if 'user_wallets' not in st.session_state:
         "operator": {"daily_limit": 50, "used_today": 18, "balance": 450.0, "total_attempts": 85}
     }
 
-# Login Gate
+# Login Gate - Stripe Style Clean Glass Card
 if not st.session_state.logged_in:
+    st.markdown("""
+        <style>
+        .stApp {
+            background: linear-gradient(135deg, #0a2540 0%, #020617 100%);
+            color: #ffffff;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+    
     st.markdown("<br><br>", unsafe_allow_html=True)
-    c1, c2, c3 = st.columns([1, 1.3, 1])
+    c1, c2, c3 = st.columns([1, 1.2, 1])
     with c2:
         with st.container(border=True):
-            st.markdown("<h2 style='text-align: center; color: #ff2e63;'>🛡️ Portal Secure Login</h2>", unsafe_allow_html=True)
+            st.markdown("<h2 style='text-align: center; color: #635bff; font-weight: 800; letter-spacing: -0.5px;'>🛡️ Stripe-Grade Portal</h2>", unsafe_allow_html=True)
+            st.markdown("<p style='text-align: center; color: #94a3b8; font-size: 13px;'>Secure Financial Infrastructure Login</p>", unsafe_allow_html=True)
+            
             username = st.text_input("Username")
             password = st.text_input("Password", type="password")
             
             st.markdown("<br>", unsafe_allow_html=True)
-            if st.button("🚀 Login to Workspace", type="primary", use_container_width=True):
+            if st.button("Sign in to Dashboard", type="primary", use_container_width=True):
                 if username in st.session_state.users_db and st.session_state.users_db[username]["password"] == password:
                     st.session_state.logged_in = True
                     st.session_state.current_user = username
                     st.session_state.user_role = st.session_state.users_db[username]["role"]
                     st.rerun()
                 else:
-                    st.error("❌ Invalid credentials. Please try again.")
+                    st.error("Invalid credentials.")
 else:
     # ==========================================
-    # VIBRANT & COLORFUL MODERN ARTWORK THEME
+    # STRIPE-INSPIRED MODERN FINTECH UI
     # ==========================================
     curr_user = st.session_state.current_user
     curr_role = st.session_state.user_role
@@ -57,59 +68,62 @@ else:
     
     remaining_quota = wallet['daily_limit'] - wallet['used_today']
 
-    # Custom Vibrant Styling with rich gradients and colored borders
+    # Custom Stripe-Inspired CSS (Deep Navy, Indigo Glow, Smooth Radius)
     st.markdown("""
         <style>
         .stApp {
-            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #090d16 100%);
-            color: #ffffff;
+            background: linear-gradient(180deg, #0a2540 0%, #071728 50%, #020617 100%);
+            color: #e2e8f0;
         }
-        .main-header {
-            background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
-            padding: 30px;
-            border-radius: 16px;
+        .stripe-hero {
+            background: linear-gradient(135deg, #635bff 0%, #00d4ff 100%);
+            padding: 32px;
+            border-radius: 18px;
             color: white;
-            text-align: center;
-            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.4);
+            box-shadow: 0 20px 40px rgba(99, 91, 255, 0.25);
             margin-bottom: 25px;
         }
-        .vibrant-card-1 {
-            background: linear-gradient(145deg, #1e293b, #0f172a);
-            border: 1px solid rgba(99, 102, 241, 0.3);
-            border-top: 5px solid #6366f1;
-            padding: 22px;
+        .stripe-card {
+            background: rgba(15, 23, 42, 0.75);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-top: 4px solid #635bff;
+            padding: 24px;
             border-radius: 14px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-            text-align: center;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            text-align: left;
         }
-        .vibrant-card-2 {
-            background: linear-gradient(145deg, #1e293b, #0f172a);
-            border: 1px solid rgba(168, 85, 247, 0.3);
-            border-top: 5px solid #a855f7;
-            padding: 22px;
+        .stripe-card-alt {
+            background: rgba(15, 23, 42, 0.75);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-top: 4px solid #00d4ff;
+            padding: 24px;
             border-radius: 14px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-            text-align: center;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            text-align: left;
         }
-        .vibrant-card-3 {
-            background: linear-gradient(145deg, #1e293b, #0f172a);
-            border: 1px solid rgba(236, 72, 153, 0.3);
-            border-top: 5px solid #ec4899;
-            padding: 22px;
+        .stripe-card-warn {
+            background: rgba(15, 23, 42, 0.75);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-top: 4px solid #f59e0b;
+            padding: 24px;
             border-radius: 14px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-            text-align: center;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            text-align: left;
         }
-        .vibrant-card-4 {
-            background: linear-gradient(145deg, #1e293b, #0f172a);
-            border: 1px solid rgba(34, 197, 94, 0.3);
-            border-top: 5px solid #22c55e;
-            padding: 22px;
+        .stripe-card-success {
+            background: rgba(15, 23, 42, 0.75);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-top: 4px solid #10b981;
+            padding: 24px;
             border-radius: 14px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-            text-align: center;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            text-align: left;
         }
-        .card-label {
+        .metric-title {
             font-size: 13px;
             font-weight: 600;
             color: #94a3b8;
@@ -117,81 +131,83 @@ else:
             letter-spacing: 0.05em;
             margin: 0;
         }
-        .card-val-1 { font-size: 28px; font-weight: 800; color: #818cf8; margin: 8px 0 0 0; }
-        .card-val-2 { font-size: 28px; font-weight: 800; color: #c084fc; margin: 8px 0 0 0; }
-        .card-val-3 { font-size: 28px; font-weight: 800; color: #f472b6; margin: 8px 0 0 0; }
-        .card-val-4 { font-size: 28px; font-weight: 800; color: #4ade80; margin: 8px 0 0 0; }
+        .metric-val {
+            font-size: 30px;
+            font-weight: 800;
+            color: #ffffff;
+            margin: 8px 0 0 0;
+            letter-spacing: -0.03em;
+        }
         </style>
     """, unsafe_allow_html=True)
 
-    # Header Banner
+    # Hero Banner
     st.markdown(f"""
-        <div class="main-header">
-            <h1 style='margin:0; font-size: 28px; font-weight: 800;'>⚡ COD Risk Intelligence Workspace</h1>
-            <p style='margin:6px 0 0 0; font-size: 15px; opacity: 0.9;'>Welcome, <b>{curr_user.upper()}</b> &nbsp;|&nbsp; Access Tier: <b>{curr_role}</b></p>
+        <div class="stripe-hero">
+            <h1 style='margin:0; font-size: 28px; font-weight: 800; letter-spacing: -0.02em;'>Financial Risk Infrastructure</h1>
+            <p style='margin:8px 0 0 0; font-size: 15px; opacity: 0.9;'>Operator: <b style='color:#fff;'>{curr_user.upper()}</b> &bull; Access Profile: <b style='color:#fff;'>{curr_role}</b></p>
         </div>
     """, unsafe_allow_html=True)
 
-    # Color-coded Performance Metrics Cards
-    st.markdown("### 🔥 Live Performance Dashboard")
+    # Metrics Grid (Stripe Fintech Style)
+    st.markdown("### 📊 Performance & Revenue Metrics")
     col1, col2, col3, col4 = st.columns(4)
 
     with col1:
         st.markdown(f"""
-            <div class="vibrant-card-1">
-                <p class="card-label">Total Attempts</p>
-                <p class="card-val-1">{wallet['total_attempts']}</p>
+            <div class="stripe-card">
+                <p class="metric-title">Total Attempts</p>
+                <p class="metric-val" style="color: #818cf8;">{wallet['total_attempts']}</p>
             </div>
         """, unsafe_allow_html=True)
 
     with col2:
         st.markdown(f"""
-            <div class="vibrant-card-2">
-                <p class="card-label">Quota Used Today</p>
-                <p class="card-val-2">{wallet['used_today']} / {wallet['daily_limit']}</p>
+            <div class="stripe-card-alt">
+                <p class="metric-title">Quota Utilized</p>
+                <p class="metric-val" style="color: #38bdf8;">{wallet['used_today']} <span style="font-size:16px; color:#64748b;">/ {wallet['daily_limit']}</span></p>
             </div>
         """, unsafe_allow_html=True)
 
     with col3:
         st.markdown(f"""
-            <div class="vibrant-card-3">
-                <p class="card-label">Remaining Quota</p>
-                <p class="card-val-3">{max(remaining_quota, 0)}</p>
+            <div class="stripe-card-warn">
+                <p class="metric-title">Remaining Quota</p>
+                <p class="metric-val" style="color: #fbbf24;">{max(remaining_quota, 0)}</p>
             </div>
         """, unsafe_allow_html=True)
 
     with col4:
         st.markdown(f"""
-            <div class="vibrant-card-4">
-                <p class="card-label">Wallet Balance</p>
-                <p class="card-val-4">Rs. {wallet['balance']}</p>
+            <div class="stripe-card-success">
+                <p class="metric-title">Wallet Balance</p>
+                <p class="metric-val" style="color: #34d399;">Rs. {wallet['balance']}</p>
             </div>
         """, unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # Lower Section: Chart & Navigation Guide
+    # Lower Section: Chart and Sidebar Navigation Guide
     c_left, c_right = st.columns([1.3, 1])
 
     with c_left:
         with st.container(border=True):
-            st.markdown("#### 📊 Risk Distribution Analytics")
-            chart_data = pd.DataFrame({
-                'Risk Category': ['Safe / Low Risk', 'Medium Risk', 'High Returners'],
-                'Distribution (%)': [72, 18, 10]
+            st.markdown("#### Risk Analytics Distribution")
+            chart_df = pd.DataFrame({
+                'Risk Category': ['Low Risk / Verified', 'Medium Risk', 'High Returners'],
+                'Share (%)': [72, 18, 10]
             })
-            st.bar_chart(chart_data.set_index('Risk Category'))
+            st.bar_chart(chart_df.set_index('Risk Category'))
 
     with c_right:
         with st.container(border=True):
-            st.markdown("#### 🧭 Quick Navigation Guide")
-            st.info("👈 **Left Sidebar** se apne alag-alag modules open karein:\n"
+            st.markdown("#### Multi-Page Modules")
+            st.info("👈 **Left Sidebar** open karein aur apne specific phases access karein:\n"
                     "- **1_Single_Check**: Single customer lookup.\n"
-                    "- **2_Bulk_Check**: Batch verification & anti-scraping.\n"
-                    "- **3_Wallet_Admin**: Monetization & user rights.")
+                    "- **2_Bulk_Check**: Batch verification & shielding.\n"
+                    "- **3_Wallet_Admin**: Billing & monetization.")
             
             st.markdown("<br>", unsafe_allow_html=True)
-            if st.button("🚪 Logout Workspace", use_container_width=True):
+            if st.button("Sign out securely", use_container_width=True):
                 st.session_state.logged_in = False
                 st.rerun()
-                
