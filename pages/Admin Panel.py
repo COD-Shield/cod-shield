@@ -1,26 +1,29 @@
 import streamlit as st
 
-st.title("💳 Admin Panel")
+st.set_page_config(page_title="Wallet & Admin | COD Shield", page_icon="💳", layout="wide")
 
-if not st.session_state.get('logged_in', False):
-    st.warning("⚠️ Pehle main page par ja kar Login karein!")
-    st.stop()
+st.markdown("""
+    <style>
+    .stApp { background-color: #f7f5f0 !important; color: #292524 !important; }
+    div[data-testid="stVerticalBlock"] > div[data-testid="stContainer"] {
+        background-color: #ffffff !important; border: 1px solid #e7e5e4 !important; border-radius: 12px !important; padding: 10px !important;
+    }
+    </style>
+""", unsafe_allow_html=True)
 
-role = st.session_state.user_role
-st.markdown(f"Current Role: **{role}**")
+st.markdown("## 💳 Phase 3: Wallet, Monetization & Admin Controls")
+st.markdown("<p style='color: #57534e;'>Manage balance, usage quotas, and system-wide configurations.</p>", unsafe_allow_html=True)
 
-if role == "Administrator":
-    st.markdown("### 👥 Admin User Management & Rights")
-    with st.form("admin_user_form"):
-        new_user = st.text_input("New Username")
-        new_pass = st.text_input("Password", type="password")
-        new_role = st.selectbox("Role", ["Operator", "Administrator"])
-        if st.form_submit_button("Create User"):
-            if new_user and new_pass:
-                st.session_state.users_db[new_user] = {"password": new_pass, "role": new_role}
-                st.success(f"User '{new_user}' created successfully!")
-            else:
-                st.warning("Fill all fields.")
-else:
-    st.markdown("### 💰 Operator Wallet & Balance")
-    st.info("Prepaid Balance: **Rs. 450/-**\n\nExtra Check Rate: **Rs. 10 / check**")
+with st.container(border=True):
+    st.markdown("#### 💰 Account Balance & Top-up")
+    st.markdown("Current Available Balance: **Rs. 7,500.0**")
+    topup_amt = st.number_input("Top-up Amount (PKR)", min_value=500, step=500, value=1000)
+    if st.button("Proceed to Top-up Gateway", type="primary", use_container_width=True):
+        st.success(f"Successfully initiated invoice for Rs. {topup_amt}!")
+
+with st.container(border=True):
+    st.markdown("#### ⚙️ Administrator Settings")
+    st.checkbox("Enable Anti-Scraping Rate Limiter", value=True)
+    st.checkbox("Strict Verification Mode", value=False)
+    if st.button("Save System Configurations"):
+        st.success("Settings updated successfully.")
