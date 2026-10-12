@@ -28,7 +28,7 @@ if 'user_wallets' not in st.session_state:
         "operator": {"daily_limit": 50, "used_today": 18, "balance": 450.0, "total_attempts": 85, "saved_amount": 34000}
     }
 
-# Dynamic Styling with Scrolling Marquee Banner & Bold Motto
+# Dynamic Styling: Hides Sidebar & Top Streamlit Toolbar when NOT logged in
 hide_sidebar_css = """
     <style>
     .stApp {
@@ -36,7 +36,6 @@ hide_sidebar_css = """
         color: #111827 !important;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
-    /* Running Ticker Banner Style */
     .marquee-container {
         background: linear-gradient(135deg, #0e3b2e 0%, #1f6f54 100%);
         color: #a3e635;
@@ -93,6 +92,9 @@ hide_sidebar_css = """
 if not st.session_state.logged_in:
     hide_sidebar_css += """
         section[data-testid="stSidebar"] {
+            display: none !important;
+        }
+        header[data-testid="stHeader"] {
             display: none !important;
         }
     """
@@ -212,7 +214,6 @@ else:
 
     st.markdown("<br>", unsafe_allow_html=True)
     
-    # Running Marquee Banner for Logged-in view as well
     st.markdown("""
         <div class="marquee-container" style="margin-bottom: 20px;">
             <div class="marquee-text">
