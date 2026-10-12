@@ -29,6 +29,14 @@ if 'user_wallets' not in st.session_state:
         "operator": {"daily_limit": 50, "used_today": 18, "balance": 450.0, "total_attempts": 85, "saved_amount": 34000}
     }
 
+# Mock Database for Phone Lookups
+if 'lookup_db' not in st.session_state:
+    st.session_state.lookup_db = {
+        "03001234567": {"risk": "HIGH", "score": "89%", "total": 14, "delivered": 3, "returned": 11, "comment": "Chronic returner across multiple courier networks. High COD refusal rate."},
+        "03219876543": {"risk": "LOW", "score": "4%", "total": 22, "delivered": 21, "returned": 1, "comment": "Trusted buyer with clean fulfillment history. Safe for dispatch."},
+        "03335554433": {"risk": "MEDIUM", "score": "45%", "total": 8, "delivered": 5, "returned": 3, "comment": "Moderate return frequency. Verify address via WhatsApp before dispatch."}
+    }
+
 # Dynamic Styling: Perfect top spacing, hides toolbar/sidebar when not logged in
 hide_sidebar_css = """
     <style>
@@ -197,7 +205,6 @@ if not st.session_state.logged_in:
             </div>
             """, unsafe_allow_html=True)
         else:
-            # Arabic Translation
             st.markdown('<p class="exec-heading" style="direction: rtl; text-align: right;">الملخص التنفيذي وذكاء المخاطر</p>', unsafe_allow_html=True)
             st.markdown(
                 '<p class="exec-sub" style="direction: rtl; text-align: right;">تمثل الدفع عند الاستلام نسبة كبيرة من المعاملات التجارية. ومع ذلك، فإن العملاء المتسببين في الارتجاع المتكرر والطلبات الوهمية تسبب خسائر مالية جسيمة. منصة COD Shield مصممة للقضاء على الشحن الأعمى وحماية هوامش أرباح التجار.</p>',
@@ -242,7 +249,6 @@ if not st.session_state.logged_in:
                 else:
                     st.error("Invalid credentials.")
 
-    # Precise Footer with Auto-Updating Year
     st.markdown(f"""
         <div class="footer-box">
             <b>© {current_year} COD Shield. All rights reserved.</b><br>
@@ -251,51 +257,132 @@ if not st.session_state.logged_in:
     """, unsafe_allow_html=True)
 
 else:
-    # Logged-in Dashboard View
+    # Logged-in Workspace with Sidebar Navigation
     curr_user = st.session_state.current_user
     wallet = st.session_state.user_wallets.get(curr_user, {"daily_limit": 50, "used_today": 0, "balance": 500.0, "total_attempts": 0, "saved_amount": 142000})
     remaining_quota = wallet['daily_limit'] - wallet['used_today']
 
-    col_h1, col_h2 = st.columns([4, 1])
-    with col_h1:
-        st.markdown("**🛡️ COD SHIELD** &nbsp;<span style='color: #4b5563; font-size: 13px;'>— <b>We Protect your margins to avoid BLIND COD shipping.</b></span>", unsafe_allow_html=True)
-    with col_h2:
-        st.markdown(f"<div style='text-align: right;'><span class='status-badge'>● LIVE ({curr_user.upper()})</span></div>", unsafe_allow_html=True)
+    with st.sidebar:
+        st.markdown("### 🛡️ COD SHIELD")
+        st.markdown(f"<span style='color: #4b5563; font-size: 12px;'>Logged in as: <b>{curr_user.upper()}</b></span>", unsafe_allow_html=True)
+        st.markdown("---")
+        
+        nav_choice = st.radio("Navigation", ["Dashboard Overview", "Single Order Risk Check", "Wallet & Quota"])
+        
+        st.markdown("---")
+        if st.button("Sign Out", use_container_width=True):
+            st.session_state.logged_in = False
+            st.rerun()
 
-    st.markdown("<br>", unsafe_allow_html=True)
-    
-    st.markdown("""
-        <div class="marquee-container" style="margin-bottom: 20px;">
-            <div class="marquee-text">
-                🛡️ ACTIVE PROTECTION MODE &nbsp;&nbsp;&bull;&nbsp;&nbsp; <b>We Protect your margins to avoid BLIND COD shipping.</b> &nbsp;&nbsp;&bull;&nbsp;&nbsp; Screen your orders before dispatch to save courier freight.
+    if nav_choice == "Dashboard Overview":
+        col_h1, col_h2 = st.columns([4, 1])
+        with col_h1:
+            st.markdown("**🛡️ COD SHIELD Workspace** &nbsp;<span style='color: #4b5563; font-size: 13px;'>— Operational Overview</span>", unsafe_allow_html=True)
+        with col_h2:
+            st.markdown(f"<div style='text-align: right;'><span class='status-badge'>● LIVE</span></div>", unsafe_allow_html=True)
+
+        st.markdown("<br>", unsafe_allow_html=True)
+        
+        st.markdown("""
+            <div class="marquee-container" style="margin-bottom: 20px;">
+                <div class="marquee-text">
+                    🛡️ ACTIVE PROTECTION MODE &nbsp;&nbsp;&bull;&nbsp;&nbsp; <b>We Protect your margins to avoid BLIND COD shipping.</b> &nbsp;&nbsp;&bull;&nbsp;&nbsp; Screen your orders before dispatch to save courier freight.
+                </div>
             </div>
-        </div>
-    """, unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
 
-    m1, m2, m3, m4 = st.columns(4)
-    with m1:
-        with st.container(border=True):
-            st.markdown("<p style='color:#4b5563; font-size:11px; font-weight:700;'>TOTAL SCANS</p>", unsafe_allow_html=True)
-            st.markdown(f"<h2 style='margin:4px 0 0 0; color:#0e3b2e;'>{wallet['total_attempts']}</h2>", unsafe_allow_html=True)
-    with m2:
-        with st.container(border=True):
-            st.markdown("<p style='color:#4b5563; font-size:11px; font-weight:700;'>QUOTA UTILIZED</p>", unsafe_allow_html=True)
-            st.markdown(f"<h2 style='margin:4px 0 0 0; color:#2563eb;'>{wallet['used_today']} / {wallet['daily_limit']}</h2>", unsafe_allow_html=True)
-    with m3:
-        with st.container(border=True):
-            st.markdown("<p style='color:#4b5563; font-size:11px; font-weight:700;'>REMAINING QUOTA</p>", unsafe_allow_html=True)
-            st.markdown(f"<h2 style='margin:4px 0 0 0; color:#16a34a;'>{max(remaining_quota, 0)}</h2>", unsafe_allow_html=True)
-    with m4:
-        with st.container(border=True):
-            st.markdown("<p style='color:#4b5563; font-size:11px; font-weight:700;'>ESTIMATED SAVINGS</p>", unsafe_allow_html=True)
-            st.markdown(f"<h2 style='margin:4px 0 0 0; color:#0d9488;'>Rs. {wallet['saved_amount']:,}</h2>", unsafe_allow_html=True)
+        m1, m2, m3, m4 = st.columns(4)
+        with m1:
+            with st.container(border=True):
+                st.markdown("<p style='color:#4b5563; font-size:11px; font-weight:700;'>TOTAL SCANS</p>", unsafe_allow_html=True)
+                st.markdown(f"<h2 style='margin:4px 0 0 0; color:#0e3b2e;'>{wallet['total_attempts']}</h2>", unsafe_allow_html=True)
+        with m2:
+            with st.container(border=True):
+                st.markdown("<p style='color:#4b5563; font-size:11px; font-weight:700;'>QUOTA UTILIZED</p>", unsafe_allow_html=True)
+                st.markdown(f"<h2 style='margin:4px 0 0 0; color:#2563eb;'>{wallet['used_today']} / {wallet['daily_limit']}</h2>", unsafe_allow_html=True)
+        with m3:
+            with st.container(border=True):
+                st.markdown("<p style='color:#4b5563; font-size:11px; font-weight:700;'>REMAINING QUOTA</p>", unsafe_allow_html=True)
+                st.markdown(f"<h2 style='margin:4px 0 0 0; color:#16a34a;'>{max(remaining_quota, 0)}</h2>", unsafe_allow_html=True)
+        with m4:
+            with st.container(border=True):
+                st.markdown("<p style='color:#4b5563; font-size:11px; font-weight:700;'>ESTIMATED SAVINGS</p>", unsafe_allow_html=True)
+                st.markdown(f"<h2 style='margin:4px 0 0 0; color:#0d9488;'>Rs. {wallet['saved_amount']:,}</h2>", unsafe_allow_html=True)
 
-    st.markdown("<br>", unsafe_allow_html=True)
-    if st.button("Sign Out", use_container_width=True):
-        st.session_state.logged_in = False
-        st.rerun()
+    elif nav_choice == "Single Order Risk Check":
+        st.markdown("## 🔍 Single Order Risk Intelligence")
+        st.markdown("Enter customer phone number or order ID to screen historical refusal patterns before dispatch.")
+        
+        st.markdown("<br>", unsafe_allow_html=True)
+        
+        with st.container(border=True):
+            col_inp1, col_inp2 = st.columns([3, 1])
+            with col_inp1:
+                search_query = st.text_input("Customer Phone Number (e.g. 03001234567 or try 03219876543)")
+            with col_inp2:
+                st.markdown("<br>", unsafe_allow_html=True)
+                search_btn = st.button("Screen Order", type="primary", use_container_width=True)
 
-    # Footer for Dashboard as well
+        if search_btn:
+            if not search_query:
+                st.warning("Please enter a valid phone number.")
+            else:
+                # Check quota
+                if remaining_quota <= 0:
+                    st.error("Daily quota exhausted! Please top up your wallet.")
+                else:
+                    # Deduct quota
+                    wallet['used_today'] += 1
+                    wallet['total_attempts'] += 1
+                    
+                    # Lookup result
+                    result = st.session_state.lookup_db.get(search_query.strip(), {
+                        "risk": "UNKNOWN", "score": "15%", "total": 2, "delivered": 1, "returned": 1, "comment": "New buyer with limited historical footprint. Proceed with standard verification."
+                    })
+
+                    st.markdown("<br>", unsafe_allow_html=True)
+                    st.markdown("### 📊 Risk Screening Result")
+
+                    r1, r2, r3 = st.columns(3)
+                    with r1:
+                        with st.container(border=True):
+                            st.markdown("<p style='color:#4b5563; font-size:11px; font-weight:700;'>RISK LEVEL</p>", unsafe_allow_html=True)
+                            risk_color = "#dc2626" if result['risk'] == "HIGH" else ("#16a34a" if result['risk'] == "LOW" else "#d97706")
+                            st.markdown(f"<h2 style='margin:4px 0 0 0; color:{risk_color};'>{result['risk']} RISK</h2>", unsafe_allow_html=True)
+                    with r2:
+                        with st.container(border=True):
+                            st.markdown("<p style='color:#4b5563; font-size:11px; font-weight:700;'>PREDICTED REFUSAL RATE</p>", unsafe_allow_html=True)
+                            st.markdown(f"<h2 style='margin:4px 0 0 0; color:#2563eb;'>{result['score']}</h2>", unsafe_allow_html=True)
+                    with r3:
+                        with st.container(border=True):
+                            st.markdown("<p style='color:#4b5563; font-size:11px; font-weight:700;'>TOTAL FULFILLMENTS</p>", unsafe_allow_html=True)
+                            st.markdown(f"<h2 style='margin:4px 0 0 0; color:#0e3b2e;'>{result['delivered']} Delivered / {result['returned']} Returned</h2>", unsafe_allow_html=True)
+
+                    st.markdown("<br>", unsafe_allow_html=True)
+                    with st.container(border=True):
+                        st.markdown("#### 📝 Network Intelligence Note")
+                        st.markdown(f"<p style='color: #4b5563; font-size: 14px;'>{result['comment']}</p>", unsafe_allow_html=True)
+
+    elif nav_choice == "Wallet & Quota":
+        st.markdown("## 💳 Wallet & Quota Management")
+        st.markdown("Monitor your screening quota balance and account usage.")
+        
+        st.markdown("<br>", unsafe_allow_html=True)
+        w1, w2 = st.columns(2)
+        with w1:
+            with st.container(border=True):
+                st.markdown("### Account Balance")
+                st.markdown(f"<h1 style='color: #16a34a;'>Rs. {wallet['balance']:,.2f}</h1>", unsafe_allow_html=True)
+                st.markdown(f"**Daily Limit:** {wallet['daily_limit']} Scans")
+                st.markdown(f"**Used Today:** {wallet['used_today']} Scans")
+        with w2:
+            with st.container(border=True):
+                st.markdown("### Top-up Quota")
+                st.selectbox("Select Top-up Package", ["Starter Pack (+500 Scans) - Rs. 3,000", "Growth Pack (+2,000 Scans) - Rs. 10,000"])
+                if st.button("Top-up Instantly", type="primary"):
+                    st.success("Top-up request initiated successfully!")
+
+    # Footer for Dashboard
     st.markdown(f"""
         <div class="footer-box">
             <b>© {current_year} COD Shield. All rights reserved.</b> &bull; Pre-dispatch Risk Intelligence Workspace.
