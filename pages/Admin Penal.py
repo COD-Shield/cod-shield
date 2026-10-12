@@ -1,6 +1,6 @@
 import streamlit as st
 
-st.title("💳 Wallet, Monetization & Admin Control (Phase 3)")
+st.title("💳 Admin Penal")
 
 if not st.session_state.get('logged_in', False):
     st.warning("⚠️ Pehle main page par ja kar Login karein!")
