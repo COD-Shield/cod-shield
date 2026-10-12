@@ -4,7 +4,7 @@ from datetime import datetime
 
 # Page Configuration
 st.set_page_config(
-    page_title="COD Risk Assessment Portal - Phase 3 (Monetization)",
+    page_title="COD Risk Assessment Portal - Phase 3",
     page_icon="🛡️",
     layout="wide"
 )
@@ -29,7 +29,7 @@ if 'user_wallets' not in st.session_state:
         "operator": {"daily_limit": 20, "used_today": 5, "balance": 450.0, "charges_per_check": 10.0}
     }
 
-# Advanced Audit Logs for Admin Monitoring
+# Advanced Audit Logs & Analytics Data
 if 'audit_logs' not in st.session_state:
     st.session_state.audit_logs = [
         {"Timestamp": "10:15 AM", "User": "admin", "Action": "Single Check", "Cost": "Free Quota", "Status": "Success"},
@@ -89,20 +89,43 @@ else:
 
     # Tabs for Workflow
     if st.session_state.user_role == "Administrator":
-        tab1, tab2, tab3, tab4 = st.tabs(["📊 Analytics", "🔍 Single Check", "📁 Bulk Verification Shield", "⚙️ Admin Audit Logs"])
+        tab1, tab2, tab3, tab4 = st.tabs(["📊 Interactive Analytics", "🔍 Single Check", "📁 Bulk Verification Shield", "⚙️ Admin Audit Logs"])
     else:
-        tab1, tab2, tab3 = st.tabs(["📊 Analytics", "🔍 Single Check", "📁 Bulk Verification Shield"])
+        tab1, tab2, tab3 = st.tabs(["📊 Interactive Analytics", "🔍 Single Check", "📁 Bulk Verification Shield"])
 
-    # --- TAB 1: ANALYTICS ---
+    # --- TAB 1: INTERACTIVE ANALYTICS & CHARTS ---
     with tab1:
-        st.markdown("### 📈 Performance & Usage Overview")
-        col_k1, col_k2, col_k3 = st.columns(3)
+        st.markdown("### 📈 Real-Time Performance & Risk Analytics")
+        
+        # KPI Row
+        col_k1, col_k2, col_k3, col_k4 = st.columns(4)
         with col_k1:
-            st.metric(label="📊 Free Quota Used Today", value=wallet['used_today'])
+            st.metric(label="📊 Free Quota Used", value=wallet['used_today'])
         with col_k2:
-            st.metric(label="💰 Current Balance", value=f"Rs. {wallet['balance']}")
+            st.metric(label="💰 Wallet Balance", value=f"Rs. {wallet['balance']}")
         with col_k3:
-            st.metric(label="⚡ System Security", value="Active 🛡️")
+            st.metric(label="🟢 Safe / Low Risk", value="78%", delta="+4%")
+        with col_k4:
+            st.metric(label="⚡ Security Shield", value="Active 🛡️")
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        # Interactive Charts Row
+        c_chart1, c_chart2 = st.columns(2)
+        with c_chart1:
+            with st.container(border=True):
+                st.markdown("#### Risk Distribution Breakdown")
+                risk_chart_data = pd.DataFrame({
+                    'Risk Level': ['Low Risk', 'Medium Risk', 'High Risk'],
+                    'Count': [145, 42, 31]
+                })
+                st.bar_chart(risk_chart_data.set_index('Risk Level'))
+        
+        with c_chart2:
+            with st.container(border=True):
+                st.markdown("#### Recent System Logs")
+                log_preview_df = pd.DataFrame(st.session_state.audit_logs)[['Timestamp', 'User', 'Action', 'Cost']]
+                st.dataframe(log_preview_df, use_container_width=True, hide_index=True)
 
     # --- TAB 2: SINGLE CHECK ---
     with tab2:
@@ -118,7 +141,6 @@ else:
         if single_btn:
             if search_phone:
                 cost_incurred = "Free Quota"
-                # Check Quota vs Wallet Balance Logic
                 if remaining_free > 0:
                     wallet['used_today'] += 1
                 else:
@@ -130,7 +152,6 @@ else:
                         st.error(f"❌ Insufficient Balance! You need Rs. {required_fee} for this check. Please top up your wallet.")
                         st.stop()
 
-                # Log activity
                 st.session_state.audit_logs.insert(0, {
                     "Timestamp": datetime.now().strftime("%I:%M %p"),
                     "User": current_usr,
@@ -180,7 +201,6 @@ else:
                     st.info(f"📁 Total rows detected: **{total_rows}**")
                     
                     if st.button("🔒 Run Paid & Protected Assessment", type="primary"):
-                        # Calculate free vs paid rows
                         free_available = max(remaining_free, 0)
                         if total_rows <= free_available:
                             wallet['used_today'] += total_rows
@@ -188,7 +208,7 @@ else:
                             cost_label = "Free Quota"
                         else:
                             excess = total_rows - free_available
-                            wallet['used_today'] = wallet['daily_limit'] # Exhaust free limit
+                            wallet['used_today'] = wallet['daily_limit']
                             total_cost = excess * wallet['charges_per_check']
                             
                             if wallet['balance'] >= total_cost:
@@ -198,7 +218,6 @@ else:
                                 st.error(f"❌ Insufficient Balance! Processing {total_rows} records requires Rs. {total_cost}. Please top up.")
                                 st.stop()
 
-                        # Log activity
                         st.session_state.audit_logs.insert(0, {
                             "Timestamp": datetime.now().strftime("%I:%M %p"),
                             "User": current_usr,
@@ -209,7 +228,6 @@ else:
 
                         st.success(f"✅ Successfully processed {total_rows} records! Cost: {cost_label}")
                         
-                        # Restricted view output (Anti-scraping protection)
                         res_summary = [{"Row": i+1, "Assessed Status": "Low Risk" if i%2==0 else "High Risk"} for i in range(total_rows)]
                         st.dataframe(pd.DataFrame(res_summary), use_container_width=True)
                         st.warning("🛡️ **Anti-Scraping Active:** Raw database downloads are disabled.")
