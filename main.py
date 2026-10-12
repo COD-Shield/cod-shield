@@ -28,13 +28,21 @@ if 'user_wallets' not in st.session_state:
         "operator": {"daily_limit": 50, "used_today": 18, "balance": 450.0, "total_attempts": 85, "saved_amount": 34000}
     }
 
-# Dynamic Styling: Hides Sidebar & Top Streamlit Toolbar when NOT logged in
+# Dynamic Styling: Completely removes top whitespace, headers, and sidebar when not logged in
 hide_sidebar_css = """
     <style>
+    header[data-testid="stHeader"] {
+        display: none !important;
+        height: 0px !important;
+    }
     .stApp {
         background-color: #f4f6f4 !important;
         color: #111827 !important;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        margin-top: -35px !important;
+    }
+    .block-container {
+        padding-top: 1rem !important;
     }
     .marquee-container {
         background: linear-gradient(135deg, #0e3b2e 0%, #1f6f54 100%);
@@ -92,9 +100,6 @@ hide_sidebar_css = """
 if not st.session_state.logged_in:
     hide_sidebar_css += """
         section[data-testid="stSidebar"] {
-            display: none !important;
-        }
-        header[data-testid="stHeader"] {
             display: none !important;
         }
     """
