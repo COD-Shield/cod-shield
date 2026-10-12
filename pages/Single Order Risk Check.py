@@ -11,7 +11,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.markdown("## 🔍 Single Customer Risk Verification")
+st.markdown("## 🔍 Phase 1: Single Customer Risk Verification")
 st.markdown("<p style='color: #57534e;'>Check individual phone numbers against shared network delivery history.</p>", unsafe_allow_html=True)
 
 if 'network_reports' not in st.session_state:
