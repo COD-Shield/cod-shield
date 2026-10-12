@@ -26,7 +26,7 @@ if 'user_wallets' not in st.session_state:
         "operator": {"daily_limit": 50, "used_today": 18, "balance": 450.0, "total_attempts": 85, "saved_amount": 34000}
     }
 
-# Ramp-Inspired Design CSS
+# Guaranteed Clean Ramp-Style CSS
 st.markdown("""
     <style>
     .stApp {
@@ -40,14 +40,7 @@ st.markdown("""
         border-radius: 16px;
         color: white;
         box-shadow: 0 10px 30px rgba(14, 59, 46, 0.2);
-        margin-bottom: 25px;
-    }
-    div[data-testid="stVerticalBlock"] > div[data-testid="stContainer"] {
-        background-color: #ffffff !important;
-        border: 1px solid #e2e8f0 !important;
-        border-radius: 12px !important;
-        padding: 20px !important;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.02) !important;
+        margin-bottom: 20px;
     }
     .ramp-section-title {
         font-size: 12px;
@@ -106,22 +99,21 @@ else:
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # Ramp Style Hero Banner with the Tagline
-    with st.container():
-        st.markdown("""
+    # Ramp Style Hero Banner
+    st.markdown("""
 <div class="ramp-hero-banner">
 <h1 style='margin:0; font-size: 34px; font-weight: 700; letter-spacing: -0.02em; color: white;'>Control your COD spend. Stop courier waste.</h1>
 <p style='margin:10px 0 0 0; font-size: 16px; opacity: 0.9; color: white;'>Protect your gross margins by screening risky returners before dispatching packages and wasting two-way freight.</p>
 <p style='margin:15px 0 0 0; font-size: 14px; font-style: italic; color: #a3e635; font-weight: 600;'>✨ "Protecting your margins, one delivery at a time."</p>
 </div>
 """, unsafe_allow_html=True)
-        
-        # Savings Counter Box
-        c_box1, c_box2 = st.columns([1, 2])
-        with c_box1:
-            with st.container(border=True):
-                st.markdown("<p style='font-size: 11px; color: #166534; text-transform: uppercase; font-weight: 700; margin:0;'>Total Estimated Budget Saved</p>", unsafe_allow_html=True)
-                st.markdown(f"<h2 style='font-size: 26px; font-weight: 800; color: #0e3b2e; margin:5px 0 0 0;'>Rs. {wallet['saved_amount']:,}</h2>", unsafe_allow_html=True)
+    
+    # Savings Counter Box
+    c_box1, c_box2 = st.columns([1, 2])
+    with c_box1:
+        with st.container(border=True):
+            st.markdown("<p style='font-size: 11px; color: #166534; text-transform: uppercase; font-weight: 700; margin:0;'>Total Estimated Budget Saved</p>", unsafe_allow_html=True)
+            st.markdown(f"<h2 style='font-size: 26px; font-weight: 800; color: #0e3b2e; margin:5px 0 0 0;'>Rs. {wallet['saved_amount']:,}</h2>", unsafe_allow_html=True)
 
     # Section 1: Metrics Overview
     st.markdown('<div class="ramp-section-title">01 / Spend & Performance Overview</div>', unsafe_allow_html=True)
