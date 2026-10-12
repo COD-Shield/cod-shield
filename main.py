@@ -1,192 +1,107 @@
 import streamlit as st
 import pandas as pd
-import random
+from datetime import datetime
 
 # Page Configuration
 st.set_page_config(
-    page_title="COD Shield Portal", 
-    page_icon="🛡️", 
-    layout="centered"
+    page_title="COD Risk Assessment Portal - Phase 1",
+    page_icon="🛡️",
+    layout="wide"
 )
 
-# Custom CSS for Sleek UI Styling
-st.markdown("""
-    <style>
-    .main-header {
-        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-        padding: 25px;
-        border-radius: 12px;
-        color: white;
-        text-align: center;
-        margin-bottom: 25px;
+# Initialize Session States for Phase 1
+if 'users_db' not in st.session_state:
+    st.session_state.users_db = {
+        "admin": {"password": "admin123", "role": "Administrator"}
     }
-    .main-header h1 {
-        color: white;
-        font-size: 28px;
-        margin-bottom: 5px;
-    }
-    .main-header p {
-        color: #e0e0e0;
-        font-size: 14px;
-    }
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 10px;
-    }
-    .stTabs [data-baseweb="tab"] {
-        background-color: #f1f3f6;
-        border-radius: 8px;
-        padding: 10px 20px;
-        font-weight: 600;
-    }
-    .stTabs [aria-selected="true"] {
-        background-color: #2a5298 !important;
-        color: white !important;
-    }
-    </style>
-""", unsafe_allow_html=True)
+if 'logged_in' not in st.session_state:
+    st.session_state.logged_in = False
+if 'current_user' not in st.session_state:
+    st.session_state.current_user = ""
+if 'user_role' not in st.session_state:
+    st.session_state.user_role = ""
 
-# Graphical Header Banner
-st.markdown("""
-    <div class="main-header">
-        <h1>🛡️ COD Shield: E-Commerce Risk Intelligence</h1>
-        <p>Pakistan's Premier Shared Network to Prevent Cash on Delivery (COD) RTO & Fraud Losses</p>
-    </div>
-""", unsafe_allow_html=True)
-
-# Mock Database Generator (100 Pakistani records with Year & Month)
-@st.cache_data
-def load_mock_network_data():
-    first_names = ["Muhammad", "Ali", "Ahmed", "Fatima", "Zainab", "Usman", "Ayesha", "Bilal", "Hamza", "Sana", "Omar", "Amina"]
-    last_names = ["Khan", "Malik", "Awan", "Chaudhry", "Butt", "Sheikh", "Qureshi", "Raza", "Siddiqui", "Mirza"]
-    prefixes = ["0300", "0301", "0321", "0333", "0345", "0312"]
-    years = [2025, 2026]
-    months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October"]
-    
-    risk_profiles = [
-        {"status": "🟢 Green (Safe / Delivered)", "remark": "Reliable customer with zero history of RTO across network brands."},
-        {"status": "🟡 Yellow (Frequent Returner)", "remark": "Returns occasional orders. Proceed with caution or require advance payment."},
-        {"status": "🔴 Red (High Risk / RTO Fraud)", "remark": "Multiple fake orders or RTOs flagged across network partners."}
-    ]
-    
-    data = []
-    for i in range(1, 101):
-        phone = f"{random.choice(prefixes)}{random.randint(1000000, 9999999)}"
-        name = f"{random.choice(first_names)} {random.choice(last_names)}"
-        profile = random.choices(risk_profiles, weights=[70, 20, 10])[0]
-        
-        data.append({
-            "Phone": phone,
-            "Customer_Name": name,
-            "Total_Orders": random.randint(1, 12),
-            "Year": random.choice(years),
-            "Month": random.choice(months),
-            "Risk_Status": profile["status"],
-            "Remarks": profile["remark"]
-        })
-    return pd.DataFrame(data)
-
-df_network = load_mock_network_data()
-
-# Network Quick Metrics Row
-col1, col2, col3 = st.columns(3)
-col1.metric(label="🌐 Network Brands", value="42 Active", delta="+3 this week")
-col2.metric(label="📦 Database Records", value="10,000+", delta="Live Sync")
-col3.metric(label="⚡ Fraud Block Rate", value="94.2%", delta="High Accuracy")
-
-st.markdown("<br>", unsafe_allow_html=True)
-
-# Tab Navigation Bar
-tab1, tab2 = st.tabs(["🔍 Single Number Search", "📂 Bulk Upload & Download"])
-
-# ================= TAB 1: SINGLE NUMBER SEARCH =================
-with tab1:
-    st.markdown("### 🔍 Instant Customer Risk Verification")
-    st.markdown("Enter a customer's complete phone number to look up their shared delivery behavior across all partner brands.")
-    
-    with st.container(border=True):
-        search_phone = st.text_input("📱 Enter Complete Customer Phone Number:", placeholder="e.g. 03001234567")
-        
-        if search_phone:
-            result = df_network[df_network['Phone'] == search_phone.strip()]
+# ================= 1. SECURE LOGIN GATE (Phase 1) =================
+if not st.session_state.logged_in:
+    st.markdown("<br><br>", unsafe_allow_html=True)
+    c1, c2, c3 = st.columns([1, 1.2, 1])
+    with c2:
+        with st.container(border=True):
+            st.markdown("<h2 style='text-align: center;'>🛡️ COD Risk Portal Login</h2>", unsafe_allow_html=True)
+            st.markdown("<p style='text-align: center; color: gray;'>Phase 1: Core Secure Access</p>", unsafe_allow_html=True)
             
-            if not result.empty:
-                for _, row in result.iterrows():
-                    st.markdown("---")
-                    
-                    # Styled Result Card Columns
-                    r_col1, r_col2 = st.columns(2)
-                    with r_col1:
-                        st.markdown(f"**👤 Customer Name:** `{row['Customer_Name']}`")
-                        st.markdown(f"**📞 Phone Number:** `{row['Phone']}`")
-                    with r_col2:
-                        st.markdown(f"**📅 Activity Timeline:** `{row['Month']} {row['Year']}`")
-                        st.markdown(f"**📦 Network Orders:** `{row['Total_Orders']}`")
-                    
-                    st.markdown("### Risk Intelligence Report")
-                    status = row['Risk_Status']
-                    
-                    # Graphical Alert Box Styling
-                    if "Green" in status:
-                        st.success(f"**Status:** {status}")
-                    elif "Yellow" in status:
-                        st.warning(f"**Status:** {status}")
+            username = st.text_input("Username")
+            password = st.text_input("Password", type="password")
+            
+            st.markdown("<br>", unsafe_allow_html=True)
+            if st.button("🔑 Login", type="primary", use_container_width=True):
+                if username in st.session_state.users_db:
+                    u_info = st.session_state.users_db[username]
+                    if u_info["password"] == password:
+                        st.session_state.logged_in = True
+                        st.session_state.current_user = username
+                        st.session_state.user_role = u_info["role"]
+                        st.rerun()
                     else:
-                        st.error(f"**Status:** {status}")
-                        
-                    st.info(f"**💡 Network Remark:** {row['Remarks']}")
-            else:
-                st.markdown("---")
-                st.success("🟢 **Green (Clean / New Customer)**: No negative delivery history found for this phone number in our shared network database. **Safe to dispatch!**")
+                        st.error("❌ Incorrect password.")
+                else:
+                    st.error("❌ User not found.")
+else:
+    # ================= 2. MAIN DASHBOARD (Phase 1) =================
+    st.markdown(f"""
+        <div style="background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%); padding: 20px; border-radius: 10px; color: white; text-align: center; margin-bottom: 20px;">
+            <h2>COD Risk Assessment & Verification Portal</h2>
+            <p>Phase 1: Single Order Verification & Secure Engine | Logged in as: <b>{st.session_state.current_user}</b> ({st.session_state.user_role})</p>
+        </div>
+    """, unsafe_allow_html=True)
+    
+    st.sidebar.markdown(f"### 👤 User: {st.session_state.current_user}")
+    st.sidebar.markdown(f"**Role:** {st.session_state.user_role}")
+    if st.sidebar.button("🚪 Logout", use_container_width=True):
+        st.session_state.logged_in = False
+        st.rerun()
 
-# ================= TAB 2: BULK UPLOAD & DOWNLOAD =================
-with tab2:
-    st.markdown("### 📂 Batch File Verification & Processing")
-    st.markdown("Upload your store's order sheet in CSV format to cross-check hundreds of customer numbers instantly.")
-    
+    # Phase 1 Layout: Single Search / Verification Interface
     with st.container(border=True):
-        st.markdown("#### Step 1: Get the Template")
-        st.markdown("Download our official CSV template to ensure your columns match correctly.")
-        
-        sample_df = pd.DataFrame({
-            "Phone": ["03001234567", "03219876543"],
-            "Customer_Name": ["Ali Khan", "Fatima Bibi"],
-            "Year": [2026, 2026],
-            "Month": ["October", "October"]
-        })
-        sample_csv = sample_df.to_csv(index=False).encode('utf-8')
-        st.download_button(
-            label="📥 Download Sample CSV Template",
-            data=sample_csv,
-            file_name="cod_shield_sample_template.csv",
-            mime="text/csv",
-        )
-    
-    st.markdown("<br>", unsafe_allow_html=True)
-    
-    with st.container(border=True):
-        st.markdown("#### Step 2: Upload & Scan")
-        uploaded_file = st.file_uploader("Upload your filled CSV file here:", type=["csv"])
-        
-        if uploaded_file is not None:
-            user_df = pd.read_csv(uploaded_file)
-            st.markdown("##### 📄 Uploaded Data Preview:")
-            st.dataframe(user_df.head(), use_container_width=True)
+        st.markdown("### 🔍 Single Order / Customer Risk Check")
+        col1, col2 = st.columns([2, 1])
+        with col1:
+            search_phone = st.text_input("Enter Customer Phone Number or Order ID", placeholder="e.g. 0300-1234567")
+        with col2:
+            st.markdown("<br>", unsafe_allow_html=True)
+            check_btn = st.button("🚀 Check Risk Score", type="primary", use_container_width=True)
+
+    if check_btn:
+        if search_phone:
+            # Dummy backend risk database check for Phase 1
+            mock_db = {
+                "0300-1234567": {"name": "Ali Khan", "city": "Lahore", "risk": "Low Risk", "returns": 1, "delivered": 25},
+                "0300-7654321": {"name": "Usman Ahmed", "city": "Karachi", "risk": "High Risk", "returns": 12, "delivered": 5},
+            }
             
-            if st.button("🚀 Run Instant Bulk Scan", type="primary"):
-                with st.spinner("Analyzing numbers against network database..."):
-                    user_df['Year'] = 2026
-                    user_df['Month'] = "October"
-                    user_df['Risk_Status'] = [random.choice(["🟢 Green (Safe / Delivered)", "🟡 Yellow (Frequent Returner)", "🔴 Red (High Risk / RTO Fraud)"]) for _ in range(len(user_df))]
-                    user_df['Remarks'] = user_df['Risk_Status'].apply(lambda x: "Safe customer" if "Green" in x else ("Proceed with caution" if "Yellow" in x else "High RTO risk"))
-                    
-                    st.success("✨ Scan completed successfully!")
-                    st.markdown("##### 📊 Verified Scan Results:")
-                    st.dataframe(user_df, use_container_width=True)
-                    
-                    csv_data = user_df.to_csv(index=False).encode('utf-8')
-                    st.download_button(
-                        label="📥 Download Verified Risk Report (CSV)",
-                        data=csv_data,
-                        file_name="cod_shield_verified_report.csv",
-                        mime="text/csv",
-                    )
+            if search_phone in mock_db:
+                data = mock_db[search_phone]
+                st.markdown("<br>", unsafe_allow_html=True)
+                
+                # Result Display Box
+                res_col1, res_col2 = st.columns(2)
+                with res_col1:
+                    with st.container(border=True):
+                        st.markdown("#### 📋 Customer Details")
+                        st.write(f"**Name:** {data['name']}")
+                        st.write(f"**City:** {data['city']}")
+                        st.write(f"**Total Delivered:** {data['delivered']}");
+                        st.write(f"**Total Returns:** {data['returns']}")
+                
+                with res_col2:
+                    with st.container(border=True):
+                        st.markdown("#### ⚡ Risk Assessment Result")
+                        if data['risk'] == "Low Risk":
+                            st.success(f"🟢 **Status: {data['risk']}**\n\nCustomer history is clean. Safe for COD.")
+                        else:
+                            st.error(f"🔴 **Status: {data['risk']}**\n\nHigh return ratio detected! Proceed with caution.")
+            else:
+                st.info("ℹ️ No prior record found for this number. Neutral status assigned.")
+        else:
+                st.warning("⚠️ Please enter a valid phone number or order ID to check.")
+            
