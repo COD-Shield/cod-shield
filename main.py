@@ -9,7 +9,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# Initialize Session States for Phase 3
+# Initialize Session States for Phase 3 & User Management
 if 'users_db' not in st.session_state:
     st.session_state.users_db = {
         "admin": {"password": "admin123", "role": "Administrator"},
@@ -43,7 +43,7 @@ if not st.session_state.logged_in:
     with c2:
         with st.container(border=True):
             st.markdown("<h2 style='text-align: center;'>🛡️ COD Risk Portal Login</h2>", unsafe_allow_html=True)
-            st.markdown("<p style='text-align: center; color: gray;'>Phase 3: Wallet & Commercial Monetization</p>", unsafe_allow_html=True)
+            st.markdown("<p style='text-align: center; color: gray;'>Phase 3: Wallet & User Rights Management</p>", unsafe_allow_html=True)
             
             username = st.text_input("Username")
             password = st.text_input("Password", type="password")
@@ -64,13 +64,13 @@ if not st.session_state.logged_in:
 else:
     # ================= 2. DASHBOARD HEADER & WALLET SIDEBAR =================
     current_usr = st.session_state.current_user
-    wallet = st.session_state.user_wallets[current_usr]
+    wallet = st.session_state.user_wallets.get(current_usr, {"daily_limit": 20, "used_today": 0, "balance": 500.0, "charges_per_check": 10.0})
     remaining_free = wallet['daily_limit'] - wallet['used_today']
 
     st.markdown(f"""
         <div style="background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%); padding: 22px; border-radius: 12px; color: white; text-align: center; margin-bottom: 25px;">
             <h1 style='margin:0; font-size: 26px;'>🛡️ COD Risk & Monetization Portal</h1>
-            <p style='margin:5px 0 0 0; font-size: 14px;'>Active User: <b>{current_usr}</b> ({st.session_state.user_role}) | Wallet & Quota Active</p>
+            <p style='margin:5px 0 0 0; font-size: 14px;'>Active User: <b>{current_usr}</b> ({st.session_state.user_role}) | Wallet & Rights Active</p>
         </div>
     """, unsafe_allow_html=True)
     
@@ -87,9 +87,9 @@ else:
         st.session_state.logged_in = False
         st.rerun()
 
-    # Tabs for Workflow
+    # Tabs for Workflow (Admin gets User Creation tab)
     if st.session_state.user_role == "Administrator":
-        tab1, tab2, tab3, tab4 = st.tabs(["📊 Interactive Analytics", "🔍 Single Check", "📁 Bulk Verification Shield", "⚙️ Admin Audit Logs"])
+        tab1, tab2, tab3, tab4, tab5 = st.tabs(["📊 Interactive Analytics", "🔍 Single Check", "📁 Bulk Verification Shield", "⚙️ Audit Logs", "👥 User Management"])
     else:
         tab1, tab2, tab3 = st.tabs(["📊 Interactive Analytics", "🔍 Single Check", "📁 Bulk Verification Shield"])
 
@@ -97,7 +97,6 @@ else:
     with tab1:
         st.markdown("### 📈 Real-Time Performance & Risk Analytics")
         
-        # KPI Row
         col_k1, col_k2, col_k3, col_k4 = st.columns(4)
         with col_k1:
             st.metric(label="📊 Free Quota Used", value=wallet['used_today'])
@@ -110,7 +109,6 @@ else:
 
         st.markdown("<br>", unsafe_allow_html=True)
 
-        # Interactive Charts Row
         c_chart1, c_chart2 = st.columns(2)
         with c_chart1:
             with st.container(border=True):
@@ -243,3 +241,17 @@ else:
             st.markdown("Monitor all user activities, queries, and wallet balance deductions across the portal.")
             log_table = pd.DataFrame(st.session_state.audit_logs)
             st.dataframe(log_table, use_container_width=True, hide_index=True)
+
+        # --- TAB 5: USER CREATION & RIGHTS MANAGEMENT (ADMIN ONLY) ---
+        with tab5:
+            st.markdown("### 👥 Create New User & Assign Rights")
+            st.markdown("Add new operators or administrators, set their passwords, initial wallet balance, and daily limits.")
+            
+            with st.form("new_user_form"):
+                col_u1, col_u2 = st.columns(2)
+                with col_u1:
+                    new_username = st.text_input("New Username")
+                    new_password = st.text_input("Password", type="password")
+                with col_u2:
+                    new_role = st.selectbox("Assign Role (Rights)", ["Operator", "Administrator"])
+                    init_balance = st.number_input("Initial Wallet Balance (PKR)", min_value=0.0, value=500.0, step=100.0)
