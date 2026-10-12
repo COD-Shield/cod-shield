@@ -28,13 +28,36 @@ if 'user_wallets' not in st.session_state:
         "operator": {"daily_limit": 50, "used_today": 18, "balance": 450.0, "total_attempts": 85, "saved_amount": 34000}
     }
 
-# Dynamic Styling (Hides Sidebar completely when NOT logged in)
+# Dynamic Styling with Scrolling Marquee Banner & Bold Motto
 hide_sidebar_css = """
     <style>
     .stApp {
         background-color: #f4f6f4 !important;
         color: #111827 !important;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    /* Running Ticker Banner Style */
+    .marquee-container {
+        background: linear-gradient(135deg, #0e3b2e 0%, #1f6f54 100%);
+        color: #a3e635;
+        padding: 12px 0;
+        border-radius: 8px;
+        overflow: hidden;
+        white-space: nowrap;
+        box-shadow: 0 4px 15px rgba(14, 59, 46, 0.15);
+        margin-bottom: 25px;
+        font-weight: 800;
+        font-size: 15px;
+        letter-spacing: 0.03em;
+    }
+    .marquee-text {
+        display: inline-block;
+        padding-left: 100%;
+        animation: marquee 25s linear infinite;
+    }
+    @keyframes marquee {
+        0% { transform: translate(0, 0); }
+        100% { transform: translate(-100%, 0); }
     }
     .exec-heading {
         font-size: 30px;
@@ -68,7 +91,6 @@ hide_sidebar_css = """
 """
 
 if not st.session_state.logged_in:
-    # Hide sidebar when not logged in
     hide_sidebar_css += """
         section[data-testid="stSidebar"] {
             display: none !important;
@@ -82,7 +104,7 @@ if not st.session_state.logged_in:
     # Top Navigation Bar with Language Toggle
     col_nav1, col_nav2, col_nav3 = st.columns([3, 1.2, 0.8])
     with col_nav1:
-        st.markdown("**🛡️ COD SHIELD** &nbsp;<span style='color: #4b5563; font-size: 13px;'>— Protecting margins, one delivery at a time.</span>", unsafe_allow_html=True)
+        st.markdown("**🛡️ COD SHIELD** &nbsp;<span style='color: #4b5563; font-size: 13px;'>— <b>We Protect your margins to avoid BLIND COD shipping.</b></span>", unsafe_allow_html=True)
     with col_nav2:
         selected_lang = st.selectbox("Language / زبان", ["English", "اردو"], index=0 if st.session_state.lang=="English" else 1, label_visibility="collapsed")
         if selected_lang != st.session_state.lang:
@@ -92,6 +114,15 @@ if not st.session_state.logged_in:
         st.markdown("<div style='text-align: right;'><span class='status-badge'>● V2.0 LIVE</span></div>", unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
+
+    # Running Ticker Window Banner (Marquee)
+    st.markdown("""
+        <div class="marquee-container">
+            <div class="marquee-text">
+                🚨 STOP SHIPPING BLIND! &nbsp;&nbsp;&bull;&nbsp;&nbsp; <b>We Protect your margins to avoid BLIND COD shipping.</b> &nbsp;&nbsp;&bull;&nbsp;&nbsp; Save your stock, labor, and courier freight before dispatch! &nbsp;&nbsp;&bull;&nbsp;&nbsp; 📦 Shield your e-commerce business today.
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
 
     # Two Column Layout: Left (Executive Summary & Core Problem) | Right (Login Window)
     left_col, right_col = st.columns([1.5, 1], gap="large")
@@ -125,7 +156,7 @@ if not st.session_state.logged_in:
         else:
             st.markdown('<p class="exec-heading" style="direction: rtl; text-align: right;">خلاصہ اور رسک انٹیلی جنس</p>', unsafe_allow_html=True)
             st.markdown(
-                '<p class="exec-sub" style="direction: rtl; text-align: right;">پاکستان اور جنوبی ایشیا میں ای کامرس کا 85 فیصد سے زائد کاروبار کیش آن ڈلیوری (COD) پر ہوتا ہے۔ لیکن بار بار پارسل واپس کرنے والے اور فیک آرڈرز مرچنٹ کا مالی نقصان کرتے ہیں۔ سی ڈی شیلڈ ایک ایسی پلیٹ فارم ہے جو روانگی سے پہلے ہی رسک چیک کر کے آپ کا نقصان بچاتی ہے۔</p>',
+                '<p class="exec-sub" style="direction: rtl; text-align: right;">پاکستان اور جنوبی ایشیا میں ای کامرس کا 85 فیصد سے زائد کاروبار کیش آن ڈلیوری (COD) پر ہوتا ہے۔ لیکن اندھا دھند پارسل بھیجنے (Blind Shipping) کی وجہ سے بار بار پارسل واپس آنے سے مرچنٹ کو شدید مالی نقصان اٹھانا پڑتا ہے۔</p>',
                 unsafe_allow_html=True
             )
             st.markdown("<h4 style='direction: rtl; text-align: right;'>🚨 اصل نقصان کہاں ہوتا ہے؟</h4>", unsafe_allow_html=True)
@@ -168,23 +199,25 @@ if not st.session_state.logged_in:
                     st.error("Invalid credentials.")
 
 else:
-    # Logged-in Dashboard View (Sidebar is automatically visible here)
+    # Logged-in Dashboard View
     curr_user = st.session_state.current_user
     wallet = st.session_state.user_wallets.get(curr_user, {"daily_limit": 50, "used_today": 0, "balance": 500.0, "total_attempts": 0, "saved_amount": 142000})
     remaining_quota = wallet['daily_limit'] - wallet['used_today']
 
     col_h1, col_h2 = st.columns([4, 1])
     with col_h1:
-        st.markdown("**🛡️ COD SHIELD** &nbsp;<span style='color: #4b5563; font-size: 13px;'>— Protecting margins, one delivery at a time.</span>", unsafe_allow_html=True)
+        st.markdown("**🛡️ COD SHIELD** &nbsp;<span style='color: #4b5563; font-size: 13px;'>— <b>We Protect your margins to avoid BLIND COD shipping.</b></span>", unsafe_allow_html=True)
     with col_h2:
         st.markdown(f"<div style='text-align: right;'><span class='status-badge'>● LIVE ({curr_user.upper()})</span></div>", unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
     
+    # Running Marquee Banner for Logged-in view as well
     st.markdown("""
-        <div style="background: linear-gradient(135deg, #0e3b2e 0%, #1f6f54 100%); padding: 30px; border-radius: 14px; color: white; margin-bottom: 20px;">
-            <h1 style='margin:0; font-size: 32px; font-weight: 700;'>Operational Workspace Overview</h1>
-            <p style='margin:8px 0 0 0; opacity: 0.9;'>Screening returners and preserving operating cash flow.</p>
+        <div class="marquee-container" style="margin-bottom: 20px;">
+            <div class="marquee-text">
+                🛡️ ACTIVE PROTECTION MODE &nbsp;&nbsp;&bull;&nbsp;&nbsp; <b>We Protect your margins to avoid BLIND COD shipping.</b> &nbsp;&nbsp;&bull;&nbsp;&nbsp; Screen your orders before dispatch to save courier freight.
+            </div>
         </div>
     """, unsafe_allow_html=True)
 
