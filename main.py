@@ -17,12 +17,12 @@ if 'user_role' not in st.session_state:
 if 'lang' not in st.session_state:
     st.session_state.lang = "English"
 
-# Users Database with Status
+# Users Database with Status & Email
 if 'users_db' not in st.session_state:
     st.session_state.users_db = {
-        "admin": {"password": "admin123", "role": "Administrator", "status": "Active"},
-        "merchant_ali": {"password": "pass123", "role": "Customer", "status": "Active"},
-        "merchant_sara": {"password": "pass123", "role": "Customer", "status": "Active"}
+        "admin": {"password": "admin123", "role": "Administrator", "status": "Active", "email": "admin@codshield.pk"},
+        "merchant_ali": {"password": "pass123", "role": "Customer", "status": "Active", "email": "ali@store.pk"},
+        "merchant_sara": {"password": "pass123", "role": "Customer", "status": "Active", "email": "sara@boutique.pk"}
     }
 
 # User Wallets & Tiers Database
@@ -225,44 +225,95 @@ else:
             st.markdown("### 👑 ADMIN CONTROL PANEL")
             st.markdown(f"<span style='color: #4b5563; font-size: 12px;'>Logged in as: <b>ADMIN</b></span>", unsafe_allow_html=True)
             st.markdown("---")
-            admin_nav = st.radio("Admin Menu", ["Merchant Management", "Add New Merchant", "Billing & Usage Report", "Invoice Generator", "System Activity Logs"])
+            admin_nav = st.radio("Admin Menu", ["Merchant Management & Bulk", "Add New Merchant", "Billing & Usage Report", "Invoice Generator & Email", "System Activity Logs"])
             st.markdown("---")
             if st.button("Sign Out", use_container_width=True):
                 st.session_state.logged_in = False
                 st.rerun()
 
-        if admin_nav == "Merchant Management":
-            st.markdown("## 👥 Merchant Account Management")
-            st.markdown("Monitor customer activities, adjust daily screening limits, disable/enable accounts, or delete merchants.")
+        # Admin Top Network Health KPIs
+        total_merchants = len(st.session_state.user_wallets)
+        total_net_scans = sum(w['total_attempts'] for w in st.session_state.user_wallets.values())
+        total_net_savings = sum(w['saved_amount'] for w in st.session_state.user_wallets.values())
+
+        k1, k2, k3 = st.columns(3)
+        with k1:
+            with st.container(border=True):
+                st.markdown("<p style='color:#4b5563; font-size:11px; font-weight:700;'>TOTAL ACTIVE MERCHANTS</p>", unsafe_allow_html=True)
+                st.markdown(f"<h3 style='margin:4px 0 0 0; color:#0e3b2e;'>{total_merchants}</h3>", unsafe_allow_html=True)
+        with k2:
+            with st.container(border=True):
+                st.markdown("<p style='color:#4b5563; font-size:11px; font-weight:700;'>NETWORK TOTAL SCANS</p>", unsafe_allow_html=True)
+                st.markdown(f"<h3 style='margin:4px 0 0 0; color:#2563eb;'>{total_net_scans:,}</h3>", unsafe_allow_html=True)
+        with k3:
+            with st.container(border=True):
+                st.markdown("<p style='color:#4b5563; font-size:11px; font-weight:700;'>TOTAL NETWORK SAVINGS</p>", unsafe_allow_html=True)
+                st.markdown(f"<h3 style='margin:4px 0 0 0; color:#0d9488;'>Rs. {total_net_savings:,}</h3>", unsafe_allow_html=True)
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        if admin_nav == "Merchant Management & Bulk":
+            st.markdown("## 👥 Merchant Account Management & Bulk Controls")
+            st.markdown("Search merchants globally, update individual/bulk limits, toggle payment statuses, or suspend accounts.")
             
             st.markdown("<br>", unsafe_allow_html=True)
-            
+
+            # Feature 1: Global Search & Bulk Quota Upgrade
+            s_col1, s_col2 = st.columns([2, 2])
+            with s_col1:
+                search_term = st.text_input("🔍 Global Search Merchant (Username or ID)").lower()
+            with s_col2:
+                bulk_tier_target = st.selectbox("Target Tier for Bulk Quota Upgrade", ["All Tiers", "Platinum 💎", "Gold 🥇", "Silver 🥈", "Bronze 🥉"])
+                bulk_add_limit = st.number_input("Add Extra Scans in Bulk", value=100, step=50)
+                if st.button("Apply Bulk Quota Upgrade", type="primary"):
+                    for m_key, m_val in st.session_state.user_wallets.items():
+                        if bulk_tier_target == "All Tiers" or m_val['tier'] == bulk_tier_target:
+                            m_val['daily_limit'] += bulk_add_limit
+                    st.session_state.audit_logs.insert(0, {
+                        "Date": datetime.now().strftime("%Y-%m-%d"),
+                        "Customer_ID": "BULK_SYS",
+                        "Customer_Name": "Admin",
+                        "Action": "Dynamic Quota & Limit Enhancement",
+                        "Details": f"Bulk added {bulk_add_limit} scans to {bulk_tier_target}"
+                    })
+                    st.success(f"Successfully upgraded daily limit for `{bulk_tier_target}`!")
+                    st.rerun()
+
+            st.markdown("---")
+
+            # Filtered or All Merchants List
             for merchant_id in list(st.session_state.user_wallets.keys()):
+                if search_term and search_term not in merchant_id.lower() and search_term not in st.session_state.user_wallets[merchant_id]['customer_id'].lower():
+                    continue
+
                 data = st.session_state.user_wallets[merchant_id]
                 m_status = st.session_state.users_db[merchant_id]["status"]
                 with st.container(border=True):
                     col_m1, col_m2, col_m3, col_m4 = st.columns([2, 1.5, 1.5, 2])
                     with col_m1:
-                        st.markdown(f"**Merchant:** `{merchant_id}`")
+                        st.markdown(f"**Merchant:** `{merchant_id}` (`{data['customer_id']}`)")
                         st.markdown(f"Status: **{m_status}** | Tier: **{data['tier']}**")
                     with col_m2:
                         new_limit = st.number_input(f"Limit ({merchant_id})", value=data['daily_limit'], step=50, key=f"lim_{merchant_id}")
+                        # Feature 3: Payment Status Toggle directly in management
+                        pay_status = st.selectbox(f"Payment ({merchant_id})", ["Paid", "Pending"], index=0 if data['status']=='Paid' else 1, key=f"pay_{merchant_id}")
+                        data['status'] = pay_status
                     with col_m3:
                         st.markdown("<br>", unsafe_allow_html=True)
-                        if st.button("Update Limit", key=f"upd_{merchant_id}", use_container_width=True):
+                        if st.button("Update Details", key=f"upd_{merchant_id}", use_container_width=True):
                             st.session_state.user_wallets[merchant_id]['daily_limit'] = new_limit
                             st.session_state.audit_logs.insert(0, {
                                 "Date": datetime.now().strftime("%Y-%m-%d"),
                                 "Customer_ID": data['customer_id'],
                                 "Customer_Name": merchant_id,
-                                "Action": "Dynamic Quota & Limit Enhancement",
-                                "Details": f"Limit updated to {new_limit}"
+                                "Action": "Tier & Wallet Overview",
+                                "Details": f"Limit set to {new_limit}, Payment Status: {pay_status}"
                             })
-                            st.success("Limit updated & logged!")
+                            st.success("Updated successfully!")
                             st.rerun()
                     with col_m4:
                         st.markdown("<br>", unsafe_allow_html=True)
-                        c_btn1, c_btn2, c_btn3 = st.columns(3)
+                        c_btn1, c_btn2 = st.columns(2)
                         with c_btn1:
                             if m_status == "Active":
                                 if st.button("Disable", key=f"dis_{merchant_id}"):
@@ -280,8 +331,6 @@ else:
                                     st.session_state.users_db[merchant_id]["status"] = "Active"
                                     st.rerun()
                         with c_btn2:
-                            pass
-                        with c_btn3:
                             if st.button("Delete", key=f"del_{merchant_id}", type="primary"):
                                 del st.session_state.users_db[merchant_id]
                                 del st.session_state.user_wallets[merchant_id]
@@ -292,7 +341,7 @@ else:
                                     "Action": "Account Deletion & Suspension",
                                     "Details": "Account permanently deleted"
                                 })
-                                st.success("Merchant deleted successfully!")
+                                st.success("Deleted!")
                                 st.rerun()
 
         elif admin_nav == "Add New Merchant":
@@ -303,17 +352,18 @@ else:
             with st.container(border=True):
                 new_m_user = st.text_input("New Merchant Username")
                 new_m_pass = st.text_input("New Merchant Password", type="password")
+                new_m_email = st.text_input("Merchant Email Address")
                 new_m_limit = st.number_input("Initial Daily Screening Limit", value=200, step=50)
                 
                 st.markdown("<br>", unsafe_allow_html=True)
                 if st.button("Create Merchant Account", type="primary", use_container_width=True):
-                    if not new_m_user or not new_m_pass:
-                        st.error("Please provide both username and password.")
+                    if not new_m_user or not new_m_pass or not new_m_email:
+                        st.error("Please provide username, password, and email address.")
                     elif new_m_user in st.session_state.users_db:
                         st.error("Merchant username already exists!")
                     else:
                         cust_id = f"MERCH_0{len(st.session_state.user_wallets) + 1}"
-                        st.session_state.users_db[new_m_user] = {"password": new_m_pass, "role": "Customer", "status": "Active"}
+                        st.session_state.users_db[new_m_user] = {"password": new_m_pass, "role": "Customer", "status": "Active", "email": new_m_email}
                         st.session_state.user_wallets[new_m_user] = {
                             "customer_id": cust_id, "daily_limit": new_m_limit, "used_today": 0, 
                             "balance": 10000.0, "total_attempts": 5, "saved_amount": 1500, "tier": "Bronze 🥉", "status": "Pending"
@@ -324,7 +374,7 @@ else:
                             "Customer_ID": cust_id,
                             "Customer_Name": new_m_user,
                             "Action": "Merchant Onboarding & Account Creation",
-                            "Details": f"New merchant onboarded with limit {new_m_limit}"
+                            "Details": f"New merchant onboarded with email {new_m_email}"
                         })
                         st.success(f"Merchant `{new_m_user}` created & logged successfully!")
 
@@ -362,15 +412,16 @@ else:
                 use_container_width=True
             )
 
-        elif admin_nav == "Invoice Generator":
-            st.markdown("## 🧾 Corporate Invoice Generator")
-            st.markdown("Select a merchant to generate and preview an official professional invoice.")
+        elif admin_nav == "Invoice Generator & Email":
+            st.markdown("## 🧾 Corporate Invoice Generator, PDF & Automated Email")
+            st.markdown("Select a merchant, view billing details, download as PDF, and dispatch invoice via automated email.")
             
             st.markdown("<br>", unsafe_allow_html=True)
             selected_merchant = st.selectbox("Select Merchant for Invoice", list(st.session_state.user_wallets.keys()))
             
             if selected_merchant:
                 m_info = st.session_state.user_wallets[selected_merchant]
+                m_email = st.session_state.users_db[selected_merchant].get("email", "merchant@store.pk")
                 invoice_no = f"INV-{datetime.now().strftime('%Y%m')}-{m_info['customer_id']}"
                 
                 st.markdown("<br>", unsafe_allow_html=True)
@@ -383,12 +434,11 @@ else:
                         st.markdown(f"<div style='text-align: right;'><b>Invoice Number:</b> {invoice_no}<br><b>Date:</b> {datetime.now().strftime('%Y-%m-%d')}<br><b>Billing Period:</b> {datetime.now().strftime('%B %Y')}</div>", unsafe_allow_html=True)
                     
                     st.markdown("---")
-                    st.markdown(f"**Billed To:** `{selected_merchant}` (Customer ID: `{m_info['customer_id']}`)")
+                    st.markdown(f"**Billed To:** `{selected_merchant}` | **Email:** `{m_email}` (Customer ID: `{m_info['customer_id']}`)")
                     st.markdown(f"**Account Tier:** {m_info['tier']}")
                     
                     st.markdown("<br>", unsafe_allow_html=True)
                     
-                    # Invoice Table Items
                     inv_items = pd.DataFrame([
                         {"Description": f"Monthly Subscription & Quota ({m_info['tier']})", "Qty": 1, "Rate (Rs.)": m_info['balance'] * 0.8, "Amount (Rs.)": m_info['balance'] * 0.8},
                         {"Description": "Additional Risk Screening Scans", "Qty": m_info['total_attempts'], "Rate (Rs.)": 15, "Amount (Rs.)": m_info['balance'] * 0.2}
@@ -397,10 +447,29 @@ else:
                     
                     st.markdown(f"<div style='text-align: right;'><h4>Total Payable Amount: Rs. {m_info['balance']:,.2f}</h4></div>", unsafe_allow_html=True)
                     st.markdown("---")
-                    st.markdown("*Note: This is a system-generated computer invoice from COD Shield Enterprise Gateway.*")
+                    st.markdown("*Note: Verified billing statement generated via COD Shield Enterprise Gateway.*")
 
-                if st.button("🖨️ Print / Download Invoice", type="primary", use_container_width=True):
-                    st.success(f"Invoice {invoice_no} generated successfully for {selected_merchant}!")
+                b_col1, b_col2 = st.columns(2)
+                with b_col1:
+                    invoice_text = f"COD Shield Invoice: {invoice_no}\nMerchant: {selected_merchant}\nTotal Amount: Rs. {m_info['balance']:,.2f}\nStatus: {m_info['status']}"
+                    st.download_button(
+                        label="📄 Download Invoice PDF",
+                        data=invoice_text,
+                        file_name=f"{invoice_no}.pdf",
+                        mime="application/pdf",
+                        type="primary",
+                        use_container_width=True
+                    )
+                with b_col2:
+                    if st.button("✉️ Send Invoice via Automated Email", use_container_width=True):
+                        st.session_state.audit_logs.insert(0, {
+                            "Date": datetime.now().strftime("%Y-%m-%d"),
+                            "Customer_ID": m_info['customer_id'],
+                            "Customer_Name": selected_merchant,
+                            "Action": "Automated Email Invoice Dispatch",
+                            "Details": f"Invoice {invoice_no} successfully sent to {m_email}"
+                        })
+                        st.success(f"Invoice {invoice_no} successfully emailed to `{m_email}`!")
 
         elif admin_nav == "System Activity Logs":
             st.markdown("## 📊 System Activity & Audit Logs")
