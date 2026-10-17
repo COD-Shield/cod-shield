@@ -8,6 +8,15 @@ st.set_page_config(
     layout="wide"
 )
 
+# Header aur default menu chupane ke liye CSS
+st.markdown("""
+    <style>
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
+        header {visibility: hidden;}
+    </style>
+""", unsafe_allow_html=True)
+
 if 'logged_in' not in st.session_state:
     st.session_state.logged_in = False
 if 'current_user' not in st.session_state:
@@ -403,7 +412,6 @@ else:
                 prev_os = m_data.get('previous_os', 0.0)
                 paid = m_data.get('payment_received', 0.0)
                 
-                # Total Payable Calculation = (Base + AIT + GST + Previous OS) - Paid
                 total_payable = (base + ait + gst + prev_os) - paid
                 
                 billing_records.append({
