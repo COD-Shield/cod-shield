@@ -4,13 +4,20 @@ from utils import send_customer_email
 
 st.set_page_config(page_title="COD Shield - Single Order Risk Check", page_icon="🛡️", layout="wide")
 
+# Header aur default menu chupane ke liye CSS
+st.markdown("""
+    <style>
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
+        header {visibility: hidden;}
+    </style>
+""", unsafe_allow_html=True)
+
 st.title("🛡️ COD Shield: Single Order Risk Intelligence")
 st.markdown("Check customer delivery behavior, RTO risk score, and dispatch direct alert emails.")
 
-# فرضی یا شیئرڈ ڈیٹا بیس (مظاہر کے لیے)
 @st.cache_data
 def load_database():
-    # آپ یہاں اپنا ڈیٹا یا CSV لوڈ کر سکتے ہیں
     data = {
         "Phone": ["03001234567", "03219876543", "03335554433", "03451122334"],
         "Customer_Name": ["Ali Khan", "Ahmed Raza", "Usman Malik", "Bilal Ahmed"],
@@ -24,7 +31,6 @@ def load_database():
 
 df = load_database()
 
-# سرچ ان پٹ
 search_phone = st.text_input("Enter Customer Phone Number (e.g., 03001234567):", "")
 
 if search_phone:
@@ -52,7 +58,7 @@ if search_phone:
                 
         st.info(f"**Remarks:** {record['Remarks']}")
         
-        # --- کسٹمر کو ڈائریکٹ ای میل بھیجنے کا سیکشن ---
+        # Email Dispatch Section
         st.markdown("---")
         st.subheader("✉️ Send Direct Email Alert to Customer")
         
@@ -68,6 +74,5 @@ if search_phone:
                         st.success(f"Email successfully dispatched to {cust_email}!")
             else:
                 st.warning("Please enter a valid customer email address first.")
-                
     else:
         st.success("🟢 Clean Record: No negative history found in the network. Safe to ship!")
