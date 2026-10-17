@@ -189,12 +189,12 @@ if not st.session_state.logged_in:
             unsafe_allow_html=True
         )
         
-        # --- ویژول ایلیمنٹ: Fake-COD = Profit Margin BLEED ---
+        # --- بڑا اور نمایاں ویژول ایلیمنٹ: Fake-COD = Profit Margin BLEED ---
         st.markdown("""
-        <div style="background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); border: 1px solid #fecaca; padding: 15px; border-radius: 10px; margin-bottom: 20px; text-align: center;">
-            <span style="font-size: 24px;">📦 ➔ ❌ ➔ 💸</span><br>
-            <b style="color: #dc2626; font-size: 15px;">Fake-COD = Profit Margin BLEED</b><br>
-            <span style="font-size: 13px; color: #7f1d1d;">Unverified orders ➔ Return-to-Origin (RTO) ➔ Zero Profit!</span>
+        <div style="background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); border: 2px solid #ef4444; padding: 25px; border-radius: 12px; margin-bottom: 25px; text-align: center; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.15);">
+            <span style="font-size: 36px;">📦 ➔ ❌ ➔ 💸</span><br><br>
+            <b style="color: #dc2626; font-size: 20px; letter-spacing: 0.02em;">Fake-COD = Profit Margin BLEED</b><br>
+            <p style="font-size: 14px; color: #7f1d1d; margin-top: 8px; margin-bottom: 0px;">Unverified orders ➔ Return-to-Origin (RTO) ➔ Zero Profit!</p>
         </div>
         """, unsafe_allow_html=True)
 
