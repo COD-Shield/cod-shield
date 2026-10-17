@@ -5,7 +5,7 @@ import streamlit as st
 
 def send_customer_email(recipient_email, subject, body_text):
     try:
-        # یہ Streamlit کے سیکرٹس سے آپ کا ای میل اور پاسورڈ اٹھائے گا
+        # یہ Streamlit Secrets سے آپ کا جی میل اور ایپ پاسورڈ اٹھائے گا
         sender_email = st.secrets["email"]["sender"]
         app_password = st.secrets["email"]["password"]
         
