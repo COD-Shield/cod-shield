@@ -188,7 +188,7 @@ if not st.session_state.logged_in:
             '<p class="exec-sub">Cash on Delivery (COD) accounts for over 85% of retail transactions in South Asian e-commerce. However, chronic returners and fake orders cause severe financial bleeding. COD Shield is a collective pre-dispatch intelligence platform designed to eliminate blind shipping.</p>',
             unsafe_allow_html=True
         )
-        st.markdown("#### 🚨 The Core Problem: Where Merchants Lose Money")
+        st.markdown("#### 🚨 The Core Problem: Fake-COD = Profit Margin Bleed")
         st.markdown("""
         <div class="problem-box">
             <b>📦 Stock & Tear Damage</b><br>
