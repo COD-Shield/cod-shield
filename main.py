@@ -240,7 +240,7 @@ if not st.session_state.logged_in:
     st.markdown(f"""
         <div class="footer-box">
             <b>© {current_year} COD Shield. All rights reserved.</b><br>
-            COD Shield provides pre-dispatch risk intelligence based on historical data. We do not guarantee 100% delivery success or replace direct buyer confirmation. Merchants retain sole discretion over order dispatch decisions.
+            Disclaimer: We COD Shield provides pre-dispatch risk intelligence based on historical data. We do not guarantee 100% delivery success or replace direct buyer confirmation. Merchants retain sole discretion over order dispatch decisions.
         </div>
     """, unsafe_allow_html=True)
 
