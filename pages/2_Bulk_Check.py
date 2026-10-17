@@ -3,10 +3,17 @@ import pandas as pd
 
 st.set_page_config(page_title="COD Shield - Bulk Verification", page_icon="📦", layout="wide")
 
+st.markdown("""
+    <style>
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
+        header {visibility: hidden;}
+    </style>
+""", unsafe_allow_html=True)
+
 st.title("📦 Bulk Order Verification & Batch Scan")
 st.markdown("Upload your CSV file containing customer phone numbers to verify batch RTO risk status.")
 
-# سیمپل ٹیمپلیٹ ڈاؤن لوڈ
 sample_data = pd.DataFrame({
     "Phone": ["03001234567", "03219876543"],
     "Customer_Name": ["Ali Khan", "Ahmed Raza"],
@@ -30,14 +37,12 @@ if uploaded_file is not None:
     st.write("Uploaded Data Preview:", input_df.head())
     
     if st.button("Run Bulk Scan 🔍"):
-        # فرضی اسکین لاجک
         input_df["Risk_Status"] = "Green (Safe)"
         input_df["Remarks"] = "No matching fraud risk detected in network."
         
         st.success("Bulk scan completed successfully!")
         st.dataframe(input_df)
         
-        # رزلٹ ڈاؤن لوڈ بٹن
         result_csv = input_df.to_csv(index=False).encode('utf-8')
         st.download_button(
             label="📥 Download Verified Risk Report (CSV)",
