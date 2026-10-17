@@ -1,29 +1,29 @@
 import streamlit as st
+import pandas as pd
 
-st.set_page_config(page_title="Wallet & Admin | COD Shield", page_icon="💳", layout="wide")
+st.set_page_config(page_title="COD Shield - Admin Panel", page_icon="⚙️", layout="wide")
 
-st.markdown("""
-    <style>
-    .stApp { background-color: #f7f5f0 !important; color: #292524 !important; }
-    div[data-testid="stVerticalBlock"] > div[data-testid="stContainer"] {
-        background-color: #ffffff !important; border: 1px solid #e7e5e4 !important; border-radius: 12px !important; padding: 10px !important;
-    }
-    </style>
-""", unsafe_allow_html=True)
+st.title("⚙️ COD Shield System Admin Panel")
+st.markdown("Monitor system audit logs, customer correspondence, and network quotas.")
 
-st.markdown("## 💳 Phase 3: Wallet, Monetization & Admin Controls")
-st.markdown("<p style='color: #57534e;'>Manage balance, usage quotas, and system-wide configurations.</p>", unsafe_allow_html=True)
+tab1, tab2 = st.tabs(["📋 Customer Correspondence Logs", "🛡️ Network Audit & Settings"])
 
-with st.container(border=True):
-    st.markdown("#### 💰 Account Balance & Top-up")
-    st.markdown("Current Available Balance: **Rs. 7,500.0**")
-    topup_amt = st.number_input("Top-up Amount (PKR)", min_value=500, step=500, value=1000)
-    if st.button("Proceed to Top-up Gateway", type="primary", use_container_width=True):
-        st.success(f"Successfully initiated invoice for Rs. {topup_amt}!")
+with tab1:
+    st.subheader("Customer Interaction & Call/WhatsApp Logs")
+    # فرضی لاگز ڈیٹا
+    log_data = pd.DataFrame({
+        "Timestamp": ["2026-10-17 18:30", "2026-10-17 19:15"],
+        "Customer_Phone": ["03001234567", "03219876543"],
+        "Channel": ["WhatsApp", "Call"],
+        "Agent_Status": ["Confirmed", "Unresponsive / Cancelled"],
+        "Action_Taken": ["Dispatched order", "Returned to Origin (RTO)"]
+    })
+    st.dataframe(log_data, use_container_width=True)
 
-with st.container(border=True):
-    st.markdown("#### ⚙️ Administrator Settings")
-    st.checkbox("Enable Anti-Scraping Rate Limiter", value=True)
-    st.checkbox("Strict Verification Mode", value=False)
-    if st.button("Save System Configurations"):
-        st.success("Settings updated successfully.")
+with tab2:
+    st.subheader("System Control & Configuration")
+    st.text_input("Admin API Key", type="password", value="••••••••••••")
+    st.checkbox("Enable Real-time Fraud Alerts", value=True)
+    st.checkbox("Network-wide Database Sync", value=True)
+    if st.button("Save Admin Settings"):
+        st.success("Admin settings updated successfully!")
