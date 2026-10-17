@@ -1,6 +1,11 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
+import io
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib import colors
 
 st.set_page_config(
     page_title="COD Shield | Risk Intelligence",
@@ -185,11 +190,11 @@ if not st.session_state.logged_in:
     with left_col:
         st.markdown('<p class="exec-heading">Executive Summary & Risk Intelligence</p>', unsafe_allow_html=True)
         st.markdown(
-            '<p class="exec-sub">Cash on Delivery (COD) accounts for over 85% of retail transactions in South Asian e-commerce. However, chronic returners and fake orders cause severe financial bleeding. COD Shield is a collective pre-dispatch intelligence platform designed to eliminate blind shipping.</p>',
+            '<p class="exec-sub">Cash on Delivery (COD) accounts for over 85% of retail transactions in South Asian e-commerce[cite: 3]. However, chronic returners and fake orders cause severe financial bleeding. COD Shield is a collective pre-dispatch intelligence platform designed to eliminate blind shipping.</p>',
             unsafe_allow_html=True
         )
         
-        # --- بڑا اور نمایاں ویژول ایلیمنٹ: Fake-COD = Profit Margin BLEED ---
+        # --- بڑا اور نمایاں ویژول ایلیمنٹ ---
         st.markdown("""
         <div style="background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); border: 2px solid #ef4444; padding: 25px; border-radius: 12px; margin-bottom: 25px; text-align: center; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.15);">
             <span style="font-size: 36px;">📦 ➔ ❌ ➔ 💸</span><br><br>
@@ -240,7 +245,7 @@ if not st.session_state.logged_in:
     st.markdown(f"""
         <div class="footer-box">
             <b>© {current_year} COD Shield. All rights reserved.</b><br>
-            Disclaimer: We COD Shield provides pre-dispatch risk intelligence based on historical data. We do not guarantee 100% delivery success or replace direct buyer confirmation. Merchants retain sole discretion over order dispatch decisions.
+            COD Shield provides pre-dispatch risk intelligence based on historical data. We do not guarantee 100% delivery success or replace direct buyer confirmation. Merchants retain sole discretion over order dispatch decisions.
         </div>
     """, unsafe_allow_html=True)
 
@@ -465,6 +470,11 @@ else:
                 m_email = st.session_state.users_db[selected_merchant].get("email", "merchant@store.pk")
                 invoice_no = f"INV-{datetime.now().strftime('%Y%m')}-{m_info['customer_id']}"
                 
+                base = m_info.get('base_billing', 10000.0)
+                ait = m_info.get('ait', 450.0)
+                gst = m_info.get('gst', 800.0)
+                total_p = base + ait + gst
+
                 st.markdown("<br>", unsafe_allow_html=True)
                 with st.container(border=True):
                     col_inv1, col_inv2 = st.columns(2)
@@ -479,11 +489,6 @@ else:
                     st.markdown(f"**Account Tier:** {m_info['tier']}")
                     
                     st.markdown("<br>", unsafe_allow_html=True)
-                    
-                    base = m_info.get('base_billing', 10000.0)
-                    ait = m_info.get('ait', 450.0)
-                    gst = m_info.get('gst', 800.0)
-                    total_p = base + ait + gst
 
                     inv_items = pd.DataFrame([
                         {"Description": f"Subscription Base Billing ({m_info['tier']})", "Amount (Rs.)": base},
@@ -496,12 +501,58 @@ else:
                     st.markdown("---")
                     st.markdown("*Note: Verified accounting statement generated via COD Shield Enterprise Gateway.*")
 
+                # ReportLab Binary PDF Generator
+                def create_pdf_bytes():
+                    buffer = io.BytesIO()
+                    doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=30, leftMargin=30, topMargin=30, bottomMargin=30)
+                    elements = []
+                    styles = getSampleStyleSheet()
+                    
+                    title_style = ParagraphStyle('TitleStyle', parent=styles['Heading1'], fontSize=18, textColor=colors.HexColor('#0e3b2e'))
+                    elements.append(Paragraph("<b>COD Shield (Pvt) Ltd</b>", title_style))
+                    elements.append(Paragraph("Pre-dispatch Risk Intelligence Platform | Islamabad, Pakistan", styles['Normal']))
+                    elements.append(Spacer(1, 15))
+                    
+                    elements.append(Paragraph(f"<b>Invoice Number:</b> {invoice_no}", styles['Normal']))
+                    elements.append(Paragraph(f"<b>Date:</b> {datetime.now().strftime('%Y-%m-%d')}", styles['Normal']))
+                    elements.append(Paragraph(f"<b>Billed To:</b> {selected_merchant} (ID: {m_info['customer_id']})", styles['Normal']))
+                    elements.append(Paragraph(f"<b>Account Tier:</b> {m_info['tier']}", styles['Normal']))
+                    elements.append(Spacer(1, 15))
+                    
+                    table_data = [
+                        ["Description", "Amount (Rs.)"],
+                        [f"Subscription Base Billing ({m_info['tier']})", f"{base:,.2f}"],
+                        ["AIT (Advance Income Tax)", f"{ait:,.2f}"],
+                        ["GST (General Sales Tax)", f"{gst:,.2f}"],
+                        ["Total Net Payable", f"{total_p:,.2f}"]
+                    ]
+                    
+                    t = Table(table_data, colWidths=[320, 160])
+                    t.setStyle(TableStyle([
+                        ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#0e3b2e')),
+                        ('TEXTCOLOR', (0,0), (-1,0), colors.white),
+                        ('ALIGN', (0,0), (-1,-1), 'LEFT'),
+                        ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+                        ('BOTTOMPADDING', (0,0), (-1,0), 8),
+                        ('BACKGROUND', (0,-1), (-1,-1), colors.HexColor('#f3f4f6')),
+                        ('FONTNAME', (0,-1), (-1,-1), 'Helvetica-Bold'),
+                        ('GRID', (0,0), (-1,-1), 0.5, colors.grey)
+                    ]))
+                    elements.append(t)
+                    elements.append(Spacer(1, 20))
+                    elements.append(Paragraph("<i>Note: Verified accounting statement generated via COD Shield Enterprise Gateway.</i>", styles['Italic']))
+                    
+                    doc.build(elements)
+                    buffer.seek(0)
+                    return buffer.getvalue()
+
+                pdf_data = create_pdf_bytes()
+
                 b_col1, b_col2 = st.columns(2)
                 with b_col1:
-                    invoice_text = f"COD Shield Invoice: {invoice_no}\nMerchant: {selected_merchant}\nTotal Payable: Rs. {total_p:,.2f}\nStatus: {m_info['status']}"
                     st.download_button(
                         label="📄 Download Invoice PDF",
-                        data=invoice_text,
+                        data=pdf_data,
                         file_name=f"{invoice_no}.pdf",
                         mime="application/pdf",
                         type="primary",
